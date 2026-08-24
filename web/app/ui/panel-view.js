@@ -122,7 +122,7 @@ function substitutesBlock(store, onAdd, onDismiss) {
   const lang = store.lang;
 
   return el('div', {}, [
-    el('div', { className: 'panel-head-meta', attrs: { style: 'padding-bottom:8px' } }, [
+    el('div', { className: 'panel-head-meta substitutes-head' }, [
       el('strong', { text: `${t(lang, 'panel.substitutes')} · ${data.of}` }),
       el('button', {
         className: 'text-button',
@@ -134,7 +134,7 @@ function substitutesBlock(store, onAdd, onDismiss) {
     ...data.options.map((option) =>
       productRow(option, store, onAdd, { why: t(lang, `reason.${option.reason}`) })
     ),
-    el('hr', { attrs: { style: 'border:none;border-top:1px solid var(--border);margin:12px 0' } })
+    el('hr', { className: 'panel-divider' })
   ]);
 }
 
@@ -145,13 +145,13 @@ function filterSummary(data, store) {
   const chips = [];
 
   if (filters.maxPrice !== null && filters.maxPrice !== undefined && filters.minPrice === null) {
-    chips.push(t(lang, 'search.under', { price: store.money(data.priceRangeUsd.max) }));
+    chips.push(t(lang, 'search.under', { price: store.money(data.priceRange.max) }));
   }
   if (filters.minPrice !== null && filters.minPrice !== undefined && filters.maxPrice !== null) {
     chips.push(
       t(lang, 'search.between', {
-        min: store.money(data.priceRangeUsd.min),
-        max: store.money(data.priceRangeUsd.max)
+        min: store.money(data.priceRange.min),
+        max: store.money(data.priceRange.max)
       })
     );
   }

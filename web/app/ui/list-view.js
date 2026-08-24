@@ -21,7 +21,13 @@ function displayName(item, lang) {
   return item.productId ? localizedName(item.productId, lang) : item.name;
 }
 
-/** "2 L · $6.98" style subtitle. */
+/**
+ * "2 L" style subtitle.
+ *
+ * The price is deliberately not in here — it gets its own right-aligned
+ * column, so the numbers line up down the list and can be scanned as a column
+ * rather than hunted for inside a sentence.
+ */
 function itemMeta(item, store) {
   const lang = store.lang;
   const bits = [];
@@ -29,11 +35,6 @@ function itemMeta(item, store) {
   const unit = unitLabel(item.unit, item.quantity, lang);
   if (item.quantity > 1 || (unit && unit !== 'pcs')) {
     bits.push(`${item.quantity} ${unit}`.trim());
-  }
-
-  if (item.productId) {
-    const line = store.moneyForItem?.(item);
-    if (line) bits.push(line);
   }
 
   return bits;
@@ -88,6 +89,14 @@ function itemRow(item, store, handlers) {
     })
   ]);
 
+  // A free-text item has no catalog price, so the column stays empty rather
+  // than showing a zero that would quietly understate the total.
+  const lineTotal = store.moneyForItem(item);
+  const price = el('div', {
+    className: 'item-price',
+    text: lineTotal || ''
+  });
+
   const remove = el('button', {
     className: 'item-remove',
     text: '×',
@@ -102,9 +111,12 @@ function itemRow(item, store, handlers) {
     'div',
     {
       className: `item${item.bought ? ' bought' : ''}${flashing ? ' flash' : ''}`,
-      dataset: { itemId: item.id }
+      dataset: { itemId: item.id },
+      // The category tint is applied per row as a left edge, so a long list
+      // stays readable when the section header has scrolled out of view.
+      attrs: { style: `--row-accent:${getCategory(item.category).color}` }
     },
-    [check, main, quantity, remove]
+    [check, main, price, quantity, remove]
   );
 }
 
@@ -154,10 +166,10 @@ export function renderList(refs, store, handlers) {
   if (totals.bought) parts.push(`${totals.bought} ${t(lang, 'list.done')}`);
   refs.listCount.textContent = totals.total ? parts.join(' · ') : '';
 
-  const hasEstimate = totals.estimatedUsd > 0;
+  const hasEstimate = totals.estimated > 0;
   refs.listTotal.hidden = !hasEstimate;
   if (hasEstimate) {
-    refs.listTotalValue.textContent = store.money(totals.estimatedUsd);
+    refs.listTotalValue.textContent = store.money(totals.estimated);
   }
 
   refs.undoButton.hidden = !store.canUndo;

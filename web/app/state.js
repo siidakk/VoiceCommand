@@ -18,7 +18,7 @@
  */
 
 import { parse } from '../../shared/nlp/index.js';
-import { applyAll } from '../../shared/engine/executor.js';
+import { applyAll, runningLow } from '../../shared/engine/executor.js';
 import * as listManager from '../../shared/engine/list-manager.js';
 import { suggest, seasonal, alternatives, previouslyBought } from '../../shared/engine/recommender.js';
 import { search as searchCatalog } from '../../shared/engine/search.js';
@@ -77,8 +77,16 @@ export class Store {
       seasonal: [],
       history: [],
       search: null,
-      substitutes: null
+      substitutes: null,
+      runningLow: null
     };
+
+    /**
+     * Products whose running-low alert the user has already dismissed.
+     * Tracked per product rather than as one flag, so a newly-due item still
+     * raises an alert after an earlier one was waved away.
+     */
+    this.dismissedLow = new Set();
 
     /** Transient UI state the renderer reads. */
     this.ui = {
@@ -120,9 +128,9 @@ export class Store {
     return speechTag(this.settings.lang);
   }
 
-  /** Format a USD amount in the active language's currency. */
-  money(usd) {
-    return formatCurrency(usd, this.settings.lang);
+  /** Format a base-currency amount as money. */
+  money(amount) {
+    return formatCurrency(amount, this.settings.lang);
   }
 
   /**
@@ -478,7 +486,28 @@ export class Store {
     this.panels.suggestions = suggest(this.list, { limit: 8 });
     this.panels.seasonal = seasonal({ limit: 8 });
     this.panels.history = previouslyBought(this.list, 8);
+
+    const low = runningLow(this.list, this.settings.lang);
+    const undismissed = low && low.items.filter((item) => !this.dismissedLow.has(item.id));
+    this.panels.runningLow = undismissed && undismissed.length ? low : null;
+
     this.notify();
+  }
+
+  /** Silence the running-low alert for the products it currently names. */
+  dismissRunningLow() {
+    for (const id of this.panels.runningLow?.ids || []) this.dismissedLow.add(id);
+    this.panels.runningLow = null;
+    this.notify();
+  }
+
+  /** Add every product the running-low alert names, in one go. */
+  async addRunningLow() {
+    const items = this.panels.runningLow?.items || [];
+    for (const item of items) {
+      await this.addProduct({ productId: item.id, name: item.name });
+    }
+    this.dismissRunningLow();
   }
 
   /** Run a search without speaking, used by the search box and chips. */

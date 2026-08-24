@@ -270,10 +270,11 @@ export function groupByCategory(state) {
  * estimate rather than blocking it.
  *
  * @returns {{ total: number, bought: number, remaining: number,
- *             estimatedUsd: number, priced: number, unpriced: number }}
+ *             estimated: number, priced: number, unpriced: number }}
+ *          `estimated` is in the catalog's base currency (INR).
  */
 export function totals(state) {
-  let estimatedUsd = 0;
+  let estimated = 0;
   let priced = 0;
   let unpriced = 0;
   let bought = 0;
@@ -283,7 +284,7 @@ export function totals(state) {
 
     const product = item.productId ? getProduct(item.productId) : null;
     if (product) {
-      estimatedUsd += product.price * item.quantity;
+      estimated += product.price * item.quantity;
       priced += 1;
     } else {
       unpriced += 1;
@@ -294,7 +295,8 @@ export function totals(state) {
     total: state.items.length,
     bought,
     remaining: state.items.length - bought,
-    estimatedUsd: Math.round(estimatedUsd * 100) / 100,
+    // Rupees are shown whole, so there is nothing to gain from tracking paise.
+    estimated: Math.round(estimated),
     priced,
     unpriced
   };

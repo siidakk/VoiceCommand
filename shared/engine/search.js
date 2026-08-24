@@ -5,7 +5,7 @@
  * ranked products. Handles the assignment's "find toothpaste under $5" and
  * "find me organic apples" alongside brand and pack-size refinements.
  *
- * Spoken prices are converted into the catalog's USD base before comparison,
+ * Spoken prices are converted into the catalog's rupee base before comparison,
  * so "under 500 rupees" and "under 5 dollars" are both meaningful and neither
  * silently compares rupees against dollars.
  */
@@ -14,7 +14,7 @@ import { CATALOG } from '../data/catalog.js';
 import { matchProducts } from '../nlp/matcher.js';
 import { normalize } from '../nlp/normalize.js';
 import { isOnSale, discountFor, salePrice, isAvailable } from '../data/seasonal.js';
-import { toUsd, currencyFor } from '../i18n/index.js';
+import { toBaseCurrency, currencyFor } from '../i18n/index.js';
 import { alternatives } from './recommender.js';
 
 /** A product's effective price — what the shopper would actually pay. */
@@ -55,7 +55,7 @@ function hasSize(product, size) {
  *        the UI can offer substitutes rather than pretending nothing matched
  * @returns {{
  *   results: object[], total: number, appliedFilters: string[],
- *   priceRangeUsd: { min: number|null, max: number|null }
+ *   priceRange: { min: number|null, max: number|null }  in base currency
  * }}
  */
 export function search(filters, options = {}) {
@@ -73,8 +73,8 @@ export function search(filters, options = {}) {
 
   // A spoken amount with no currency word is in the user's own currency.
   const spokenCurrency = currency || currencyFor(lang);
-  const minUsd = minPrice === null ? null : toUsd(minPrice, lang, spokenCurrency);
-  const maxUsd = maxPrice === null ? null : toUsd(maxPrice, lang, spokenCurrency);
+  const minBase = minPrice === null ? null : toBaseCurrency(minPrice, lang, spokenCurrency);
+  const maxBase = maxPrice === null ? null : toBaseCurrency(maxPrice, lang, spokenCurrency);
 
   // ---------------------------------------------------------- candidates ---
   /** product id -> best relevance seen */
@@ -120,8 +120,8 @@ export function search(filters, options = {}) {
       if (size && !hasSize(product, size)) continue;
 
       const price = effectivePrice(product);
-      if (minUsd !== null && price < minUsd) continue;
-      if (maxUsd !== null && price > maxUsd) continue;
+      if (minBase !== null && price < minBase) continue;
+      if (maxBase !== null && price > maxBase) continue;
 
       const available = isAvailable(product.id);
       if (!available && !includeUnavailable) continue;
@@ -178,9 +178,9 @@ export function search(filters, options = {}) {
     appliedFilters: applied.filter((f) => !(relaxed.includes('tags') && f === 'tags')),
     relaxedFilters: relaxed,
     requestedTags: tags,
-    priceRangeUsd: {
-      min: minUsd === null ? null : Math.round(minUsd * 100) / 100,
-      max: maxUsd === null ? null : Math.round(maxUsd * 100) / 100
+    priceRange: {
+      min: minBase === null ? null : Math.round(minBase),
+      max: maxBase === null ? null : Math.round(maxBase)
     }
   };
 }

@@ -27,7 +27,7 @@ export function listPayload(state, lang) {
     groups: list.groupByCategory(state),
     totals: {
       ...totals,
-      estimatedFormatted: formatCurrency(totals.estimatedUsd, lang)
+      estimatedFormatted: formatCurrency(totals.estimated, lang)
     },
     historyCount: state.history.length
   };

@@ -1,74 +1,95 @@
 /*
  * Voice Shopping Assistant — styles.
  *
- * Mobile-first, single stylesheet, no framework. The layout is one column on a
- * phone (list, then panels, with the voice dock pinned to the bottom where a
- * thumb reaches) and two columns from tablet width up.
+ * Mobile-first, one stylesheet, no framework. One column on a phone with the
+ * voice dock pinned where a thumb reaches; two columns from 900px up.
  *
- * Colour is defined once as tokens on :root and re-declared for dark mode, so
- * every component reads from the same palette in both themes.
+ * Three rules the whole sheet follows, so it reads as designed rather than
+ * assembled:
+ *
+ *   Colour     one accent (teal) for anything interactive, green only for
+ *              "done", amber only for "degraded", red only for "broken".
+ *              Category colours appear as thin edges, never as fills.
+ *   Rhythm     every size is a multiple of 4px.
+ *   Depth      hairline borders do the separating; shadow is reserved for
+ *              things that genuinely float (the dock, the mic, the sheet).
  */
 
 /* ------------------------------------------------------------------ tokens */
 
 :root {
-  --bg: #f6f7f9;
+  color-scheme: light dark;
+
+  /* neutrals — very slightly cool, so the teal accent sits naturally */
+  --bg: #f4f6f7;
   --surface: #ffffff;
-  --surface-2: #f0f2f5;
-  --border: #e2e5ea;
-  --text: #12151a;
-  --text-dim: #5c6472;
-  --text-faint: #8b93a1;
+  --surface-2: #eef1f2;
+  --surface-3: #e6eaec;
+  --border: #dde3e5;
+  --border-strong: #c8d1d4;
 
-  --accent: #2f6df6;
-  --accent-hover: #2559d0;
-  --accent-soft: #e8efff;
+  --text: #10171a;
+  --text-dim: #55636a;
+  --text-faint: #85939b;
 
-  --success: #168a5c;
-  --success-soft: #e3f5ec;
-  --warn: #b5761b;
-  --warn-soft: #fdf1dc;
-  --danger: #c93b3b;
-  --danger-soft: #fbe9e9;
+  /* one accent for anything you can act on */
+  --accent: #0e7490;
+  --accent-hover: #0a5b73;
+  --accent-soft: #e2f1f6;
+  --accent-ring: rgba(14, 116, 144, 0.25);
 
-  --radius: 12px;
-  --radius-sm: 8px;
-  --radius-lg: 18px;
+  /* semantics, each with exactly one job */
+  --success: #157a58;
+  --success-soft: #e2f2ec;
+  --warn: #96650f;
+  --warn-soft: #fbf0da;
+  --danger: #bc3a2e;
+  --danger-soft: #fbe8e6;
 
-  --shadow-sm: 0 1px 2px rgba(16, 20, 28, 0.06);
-  --shadow-md: 0 4px 16px rgba(16, 20, 28, 0.1);
-  --shadow-lg: 0 12px 32px rgba(16, 20, 28, 0.16);
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius: 14px;
+  --radius-lg: 20px;
 
-  --dock-height: 148px;
+  --shadow-sm: 0 1px 2px rgba(12, 22, 28, 0.06);
+  --shadow-md: 0 6px 20px rgba(12, 22, 28, 0.1);
+  --shadow-lg: 0 20px 48px rgba(12, 22, 28, 0.2);
 
-  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
-    "Noto Sans", "Noto Sans Devanagari", Arial, sans-serif;
+  --dock-height: 152px;
+
+  --font: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', 'Noto Sans', 'Noto Sans Devanagari', Arial, sans-serif;
+  --font-num: ui-sans-serif, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0f1115;
-    --surface: #171a21;
-    --surface-2: #1f242d;
-    --border: #2a303a;
-    --text: #e9ecf1;
-    --text-dim: #a2abba;
-    --text-faint: #6f7987;
+    --bg: #0c1113;
+    --surface: #141b1e;
+    --surface-2: #1b2427;
+    --surface-3: #232e32;
+    --border: #263237;
+    --border-strong: #35454b;
 
-    --accent: #5b8dff;
-    --accent-hover: #7aa2ff;
-    --accent-soft: #1b2740;
+    --text: #e8eef0;
+    --text-dim: #9caab1;
+    --text-faint: #6b7c83;
 
-    --success: #3fbc8a;
-    --success-soft: #14291f;
-    --warn: #e0a44a;
-    --warn-soft: #2c2415;
-    --danger: #f07070;
-    --danger-soft: #2e1a1a;
+    --accent: #3fb6d4;
+    --accent-hover: #62c9e3;
+    --accent-soft: #0e2d38;
+    --accent-ring: rgba(63, 182, 212, 0.3);
 
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
-    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
+    --success: #3ec08c;
+    --success-soft: #10281f;
+    --warn: #dfa54c;
+    --warn-soft: #2b2415;
+    --danger: #ef7168;
+    --danger-soft: #2e1a19;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.55);
+    --shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.7);
   }
 }
 
@@ -100,8 +121,8 @@ h1,
 h2,
 h3 {
   margin: 0;
-  font-weight: 650;
-  letter-spacing: -0.01em;
+  font-weight: 640;
+  letter-spacing: -0.015em;
 }
 
 button,
@@ -118,7 +139,7 @@ button {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
 }
 
 .visually-hidden {
@@ -139,22 +160,39 @@ button {
   color: var(--danger);
 }
 
+/* A shared label style: small, tracked-out, quiet. */
+.eyebrow,
+.category-head,
+.transcript-label,
+.help-group h3 {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
 /* ------------------------------------------------------------------ layout */
 
 .app {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  /* Leave room for the fixed dock plus the iOS home indicator. */
   padding-bottom: calc(var(--dock-height) + env(safe-area-inset-bottom, 0px));
+}
+
+.main,
+.transcript,
+.alert,
+.error-banner {
+  width: 100%;
+  max-width: 1080px;
+  margin-inline: auto;
 }
 
 .main {
   flex: 1;
-  width: 100%;
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 16px 24px;
+  padding: 0 16px 32px;
   display: grid;
   gap: 16px;
   grid-template-columns: 1fr;
@@ -162,12 +200,22 @@ button {
 
 @media (min-width: 900px) {
   .main {
-    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
     align-items: start;
   }
 
   :root {
     --dock-height: 116px;
+  }
+}
+
+/* Keep the full-bleed strips inset on narrow screens. */
+@media (max-width: 1111px) {
+  .transcript,
+  .alert,
+  .error-banner {
+    width: auto;
+    margin-inline: 16px;
   }
 }
 
@@ -182,10 +230,10 @@ button {
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-  padding: 12px 16px calc(12px + env(safe-area-inset-top, 0px));
+  padding: 12px 16px;
   padding-top: calc(12px + env(safe-area-inset-top, 0px));
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
-  backdrop-filter: blur(12px);
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  backdrop-filter: blur(14px) saturate(1.4);
   border-bottom: 1px solid var(--border);
 }
 
@@ -197,21 +245,29 @@ button {
 }
 
 .brand-mark {
-  font-size: 26px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  font-size: 18px;
   line-height: 1;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
 }
 
 .brand-text h1 {
-  font-size: 17px;
+  font-size: 16px;
+  line-height: 1.25;
 }
 
 .tagline {
-  margin: 1px 0 0;
-  font-size: 12.5px;
+  margin: 2px 0 0;
+  font-size: 12px;
   color: var(--text-dim);
 }
 
-@media (max-width: 520px) {
+@media (max-width: 560px) {
   .tagline {
     display: none;
   }
@@ -220,7 +276,7 @@ button {
 .topbar-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .select {
@@ -229,12 +285,18 @@ button {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 7px 26px 7px 10px;
-  font-size: 13.5px;
+  font-size: 13px;
+  font-weight: 500;
   background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
     linear-gradient(135deg, currentColor 50%, transparent 50%);
   background-position: calc(100% - 14px) 52%, calc(100% - 9px) 52%;
   background-size: 5px 5px, 5px 5px;
   background-repeat: no-repeat;
+  transition: border-color 0.15s;
+}
+
+.select:hover {
+  border-color: var(--border-strong);
 }
 
 .icon-button {
@@ -247,25 +309,35 @@ button {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 14px;
-  transition: background 0.15s, border-color 0.15s;
+  color: var(--text-dim);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
 .icon-button:hover {
   background: var(--accent-soft);
   border-color: var(--accent);
+  color: var(--accent);
 }
 
 .icon-button[aria-pressed='false'] {
-  opacity: 0.45;
+  opacity: 0.4;
 }
 
 .badge {
   font-size: 11px;
-  font-weight: 600;
-  padding: 4px 9px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  padding: 5px 9px;
   border-radius: 999px;
   border: 1px solid transparent;
   white-space: nowrap;
+}
+
+.currency-badge {
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
 }
 
 .badge[data-state='synced'] {
@@ -278,8 +350,9 @@ button {
   color: var(--warn);
 }
 
-@media (max-width: 420px) {
-  .badge {
+@media (max-width: 480px) {
+  .currency-badge,
+  .badge[data-state] {
     display: none;
   }
 }
@@ -287,10 +360,9 @@ button {
 /* -------------------------------------------------------------- transcript */
 
 .transcript {
-  width: 100%;
-  max-width: 1100px;
-  margin: 14px auto 12px;
-  padding: 12px 14px;
+  margin-top: 16px;
+  margin-bottom: 12px;
+  padding: 12px 14px 14px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -298,22 +370,9 @@ button {
   transition: border-color 0.2s, background 0.2s;
 }
 
-@media (min-width: 1132px) {
-  .transcript {
-    margin-inline: auto;
-  }
-}
-
-@media (max-width: 1131px) {
-  .transcript {
-    margin-inline: 16px;
-    width: auto;
-  }
-}
-
 .transcript[data-state='listening'] {
   border-color: var(--accent);
-  background: var(--accent-soft);
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
 .transcript[data-state='processing'] {
@@ -322,7 +381,6 @@ button {
 
 .transcript[data-state='error'] {
   border-color: var(--danger);
-  background: var(--danger-soft);
 }
 
 .transcript-row {
@@ -332,23 +390,18 @@ button {
   gap: 10px;
 }
 
-.transcript-label {
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-}
-
 .transcript-confidence {
-  font-size: 11.5px;
+  font-size: 11px;
+  font-weight: 600;
   color: var(--text-faint);
   font-variant-numeric: tabular-nums;
 }
 
 .transcript-text {
-  margin: 4px 0 0;
-  font-size: 16.5px;
+  margin: 6px 0 0;
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
   min-height: 1.5em;
   word-break: break-word;
 }
@@ -356,20 +409,22 @@ button {
 .transcript-text:empty::before {
   content: '—';
   color: var(--text-faint);
+  font-weight: 400;
 }
 
-/* Interim results are visibly provisional so the user can tell the difference
-   between "still hearing you" and "this is what I acted on". */
+/* Interim text is visibly provisional, so "still hearing you" never looks
+   like "this is what I acted on". */
 .transcript-text.interim {
   color: var(--text-dim);
   font-style: italic;
+  font-weight: 400;
 }
 
 .transcript-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
 .transcript-chips:empty {
@@ -383,7 +438,7 @@ button {
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 12.5px;
-  font-weight: 550;
+  font-weight: 600;
   border: 1px solid var(--border);
   background: var(--surface-2);
   color: var(--text-dim);
@@ -410,11 +465,82 @@ button {
 .chip.action {
   cursor: pointer;
   border-style: dashed;
+  border-color: var(--border-strong);
 }
 
 .chip.action:hover {
   border-color: var(--accent);
+  border-style: solid;
   color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* ------------------------------------------------------- proactive alert -- */
+
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+}
+
+.alert-icon {
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.alert-text {
+  flex: 1;
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 550;
+  color: var(--accent);
+}
+
+.alert-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.alert-add {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--surface);
+  font-size: 13px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.alert-add:hover {
+  background: var(--accent-hover);
+}
+
+.alert-dismiss {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: none;
+  border-radius: 50%;
+  font-size: 17px;
+  line-height: 1;
+  color: var(--accent);
+  opacity: 0.7;
+}
+
+.alert-dismiss:hover {
+  opacity: 1;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
 /* ------------------------------------------------------------------ errors */
@@ -423,26 +549,18 @@ button {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  width: auto;
-  max-width: 1100px;
-  margin: 0 16px 12px;
-  padding: 11px 13px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
   border-radius: var(--radius);
   background: var(--danger-soft);
-  border: 1px solid color-mix(in srgb, var(--danger) 40%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
   color: var(--danger);
   font-size: 14px;
 }
 
-@media (min-width: 1132px) {
-  .error-banner {
-    margin-inline: auto;
-  }
-}
-
 .error-banner.warn {
   background: var(--warn-soft);
-  border-color: color-mix(in srgb, var(--warn) 40%, transparent);
+  border-color: color-mix(in srgb, var(--warn) 35%, transparent);
   color: var(--warn);
 }
 
@@ -453,7 +571,7 @@ button {
 
 .error-actions {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
@@ -478,18 +596,29 @@ button {
 
 .panel-head h2 {
   font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .panel-head-meta {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
+/* Item count as a pill, so the header reads as one unit. */
 .count {
-  font-size: 12.5px;
+  font-size: 12px;
+  font-weight: 650;
   color: var(--text-dim);
   font-variant-numeric: tabular-nums;
+}
+
+.count:not(:empty) {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
 }
 
 .text-button {
@@ -497,7 +626,7 @@ button {
   border: none;
   padding: 4px 2px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 620;
   color: var(--accent);
 }
 
@@ -509,10 +638,9 @@ button {
   color: var(--danger);
 }
 
-.list-body,
-.panel-body {
-  padding: 6px 0 10px;
-  min-height: 90px;
+.list-body {
+  padding: 4px 0 8px;
+  min-height: 96px;
 }
 
 .panel-body {
@@ -521,77 +649,83 @@ button {
   overflow-y: auto;
 }
 
+/* A working panel dims rather than disappearing, so nothing jumps. */
 [aria-busy='true'] {
-  opacity: 0.55;
+  opacity: 0.5;
   pointer-events: none;
+  transition: opacity 0.15s;
 }
 
 /* -------------------------------------------------------------- list items */
 
-.category-group + .category-group {
-  margin-top: 2px;
-}
-
 .category-head {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 10px 16px 5px;
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-faint);
+  gap: 8px;
+  padding: 14px 16px 6px;
 }
 
 .category-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+.category-group:first-child .category-head {
+  padding-top: 10px;
 }
 
 .item {
   display: flex;
   align-items: center;
-  gap: 11px;
-  padding: 9px 16px;
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+  gap: 10px;
+  padding: 10px 16px 10px 13px;
+  border-left: 3px solid transparent;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+  transition: border-left-color 0.15s, background 0.15s;
 }
 
-.item:last-child {
+.item:hover {
+  border-left-color: var(--row-accent, var(--accent));
+  background: color-mix(in srgb, var(--surface-2) 55%, transparent);
+}
+
+.category-group:last-child .item:last-child {
   border-bottom: none;
 }
 
-/* A freshly added or changed row flashes once, so the effect of a spoken
-   command is visible without reading the transcript. */
+/* A changed row flashes once, so a spoken command has a visible target. */
 @keyframes flash {
-  from {
+  0% {
     background: var(--accent-soft);
+    border-left-color: var(--accent);
   }
-  to {
+  100% {
     background: transparent;
+    border-left-color: transparent;
   }
 }
 
 .item.flash {
-  animation: flash 1.1s ease-out;
+  animation: flash 1.2s ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .item.flash {
     animation: none;
+    border-left-color: var(--accent);
   }
 }
 
 .item-check {
-  width: 21px;
-  height: 21px;
+  width: 22px;
+  height: 22px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  border: 2px solid var(--border);
-  border-radius: 6px;
+  border: 2px solid var(--border-strong);
+  border-radius: 7px;
   background: transparent;
   color: transparent;
   font-size: 12px;
@@ -617,6 +751,7 @@ button {
 .item-name {
   font-size: 15px;
   font-weight: 550;
+  letter-spacing: -0.005em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -624,30 +759,49 @@ button {
 
 .item.bought .item-name {
   text-decoration: line-through;
+  text-decoration-color: var(--text-faint);
   color: var(--text-faint);
 }
 
 .item-meta {
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--text-dim);
   display: flex;
-  gap: 7px;
+  gap: 6px;
   flex-wrap: wrap;
+  margin-top: 1px;
 }
 
 .item-flag {
-  font-size: 11px;
-  padding: 1px 6px;
-  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 4px;
   background: var(--warn-soft);
   color: var(--warn);
+}
+
+/* Prices line up as a column so the list can be scanned vertically. */
+.item-price {
+  flex-shrink: 0;
+  min-width: 52px;
+  text-align: right;
+  font-family: var(--font-num);
+  font-size: 13px;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+}
+
+.item.bought .item-price {
+  color: var(--text-faint);
 }
 
 .qty {
   display: flex;
   align-items: center;
-  gap: 1px;
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -656,16 +810,17 @@ button {
 }
 
 .qty button {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   display: grid;
   place-items: center;
   border: none;
   background: none;
   border-radius: 50%;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1;
   color: var(--text-dim);
+  transition: background 0.12s, color 0.12s;
 }
 
 .qty button:hover {
@@ -674,16 +829,16 @@ button {
 }
 
 .qty-value {
-  min-width: 24px;
+  min-width: 22px;
   text-align: center;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
 }
 
 .item-remove {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
@@ -693,6 +848,7 @@ button {
   color: var(--text-faint);
   font-size: 17px;
   line-height: 1;
+  transition: background 0.12s, color 0.12s;
 }
 
 .item-remove:hover {
@@ -700,46 +856,63 @@ button {
   color: var(--danger);
 }
 
+/* Only genuinely narrow phones drop the price column; 375px (iPhone) and up
+   have room for it, and the grand total stays visible either way. */
+@media (max-width: 359px) {
+  .item-price {
+    display: none;
+  }
+}
+
 .list-total {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 14px 16px;
   border-top: 1px solid var(--border);
   background: var(--surface-2);
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 550;
+  color: var(--text-dim);
 }
 
 .list-total strong {
-  font-size: 16px;
+  font-family: var(--font-num);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
   font-variant-numeric: tabular-nums;
 }
 
 /* ------------------------------------------------------------- empty state */
 
 .empty {
-  padding: 30px 22px;
+  padding: 36px 24px;
   text-align: center;
   color: var(--text-dim);
 }
 
 .empty-title {
+  margin: 0;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 620;
   color: var(--text);
 }
 
 .empty-hint {
-  margin: 5px 0 0;
+  margin: 6px auto 0;
+  max-width: 34ch;
   font-size: 13.5px;
+  line-height: 1.45;
 }
 
 /* -------------------------------------------------------------------- tabs */
 
 .tabs {
   display: flex;
-  gap: 2px;
-  padding: 10px 10px 0;
+  gap: 4px;
+  padding: 10px 12px 0;
   border-bottom: 1px solid var(--border);
   overflow-x: auto;
   scrollbar-width: none;
@@ -751,15 +924,20 @@ button {
 
 .tab {
   flex-shrink: 0;
-  padding: 8px 12px;
+  padding: 8px 10px 9px;
   border: none;
   background: none;
   font-size: 13px;
-  font-weight: 600;
-  color: var(--text-dim);
+  font-weight: 620;
+  color: var(--text-faint);
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
   white-space: nowrap;
+  transition: color 0.15s;
+}
+
+.tab:hover {
+  color: var(--text-dim);
 }
 
 .tab[aria-selected='true'] {
@@ -773,8 +951,8 @@ button {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+  padding: 10px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
 }
 
 .suggestion:last-child {
@@ -788,53 +966,62 @@ button {
 
 .suggestion-name {
   font-size: 14.5px;
-  font-weight: 550;
+  font-weight: 570;
+  letter-spacing: -0.005em;
 }
 
+/* The reason a suggestion exists is the point of it, so it gets real space. */
 .suggestion-why {
   font-size: 12px;
+  line-height: 1.35;
   color: var(--text-dim);
+  margin-top: 1px;
 }
 
 .suggestion-price {
+  font-family: var(--font-num);
   font-size: 13px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   text-align: right;
   flex-shrink: 0;
+  color: var(--text-dim);
 }
 
 .price-was {
   display: block;
   font-size: 11px;
+  font-weight: 500;
   color: var(--text-faint);
   text-decoration: line-through;
 }
 
 .price-now {
   color: var(--success);
-  font-weight: 650;
+  font-weight: 700;
+}
+
+.sale-tag,
+.oos-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  margin-left: 6px;
+  vertical-align: 1px;
 }
 
 .sale-tag {
-  display: inline-block;
-  font-size: 10.5px;
-  font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 4px;
   background: var(--success-soft);
   color: var(--success);
-  margin-left: 5px;
 }
 
 .oos-tag {
-  display: inline-block;
-  font-size: 10.5px;
-  font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 4px;
   background: var(--danger-soft);
   color: var(--danger);
-  margin-left: 5px;
+  text-transform: uppercase;
 }
 
 .add-button {
@@ -849,34 +1036,44 @@ button {
   font-size: 17px;
   line-height: 1;
   color: var(--accent);
-  transition: background 0.15s, transform 0.1s;
+  transition: background 0.15s, color 0.15s, transform 0.1s, border-color 0.15s;
 }
 
 .add-button:hover {
   background: var(--accent);
+  border-color: var(--accent);
   color: #fff;
 }
 
 .add-button:active {
-  transform: scale(0.92);
+  transform: scale(0.9);
 }
 
 .add-button[disabled] {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: default;
+  color: var(--success);
 }
 
 .panel-note {
   font-size: 12.5px;
+  line-height: 1.45;
   color: var(--text-dim);
-  padding: 4px 0 10px;
+  padding: 2px 0 10px;
+  margin: 0;
 }
 
 .filter-summary {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  padding-bottom: 10px;
+  padding-bottom: 12px;
+}
+
+.panel-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 12px 0;
 }
 
 /* -------------------------------------------------------------------- dock */
@@ -890,43 +1087,51 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  backdrop-filter: blur(14px);
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  backdrop-filter: blur(16px) saturate(1.4);
   border-top: 1px solid var(--border);
+  box-shadow: 0 -1px 0 color-mix(in srgb, var(--border) 40%, transparent);
 }
 
 .text-form {
   display: flex;
   gap: 8px;
   width: 100%;
-  max-width: 620px;
+  max-width: 600px;
 }
 
 .text-input {
   flex: 1;
   min-width: 0;
-  padding: 10px 13px;
+  padding: 10px 14px;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--surface-2);
   font-size: 15px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.text-input::placeholder {
+  color: var(--text-faint);
 }
 
 .text-input:focus {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
   outline: none;
 }
 
 .send-button {
-  padding: 0 16px;
+  padding: 0 18px;
   border: none;
   border-radius: 999px;
   background: var(--accent);
   color: #fff;
   font-size: 14px;
   font-weight: 650;
+  transition: background 0.15s;
 }
 
 .send-button:hover {
@@ -936,13 +1141,13 @@ button {
 .mic-cluster {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
 }
 
 .mic-button {
   position: relative;
-  width: 58px;
-  height: 58px;
+  width: 60px;
+  height: 60px;
   display: grid;
   place-items: center;
   border: none;
@@ -976,10 +1181,11 @@ button {
 .mic-button[data-state='denied'] {
   background: var(--text-faint);
   cursor: not-allowed;
+  box-shadow: none;
 }
 
-/* The pulse is the primary "I am listening" affordance — it has to read at a
-   glance from arm's length, which is how a voice-first app is actually used. */
+/* The pulse is the primary "I am listening" cue — it has to read at arm's
+   length, which is how a voice-first app is actually used. */
 .mic-pulse {
   position: absolute;
   inset: 0;
@@ -988,7 +1194,7 @@ button {
 }
 
 .mic-button[data-state='listening'] .mic-pulse {
-  animation: pulse 1.5s ease-out infinite;
+  animation: pulse 1.6s ease-out infinite;
 }
 
 @keyframes pulse {
@@ -996,14 +1202,30 @@ button {
     box-shadow: 0 0 0 0 color-mix(in srgb, var(--danger) 55%, transparent);
   }
   100% {
-    box-shadow: 0 0 0 20px transparent;
+    box-shadow: 0 0 0 22px transparent;
+  }
+}
+
+/* Processing gets its own motion, so "heard you" and "working on it" are not
+   the same signal. */
+.mic-button[data-state='processing'] .mic-pulse {
+  animation: spin 1s linear infinite;
+  border: 2px solid transparent;
+  border-top-color: rgba(255, 255, 255, 0.9);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mic-button[data-state='listening'] .mic-pulse {
+  .mic-button[data-state='listening'] .mic-pulse,
+  .mic-button[data-state='processing'] .mic-pulse {
     animation: none;
   }
+
   .mic-button[data-state='listening'] {
     outline: 3px solid var(--danger);
     outline-offset: 3px;
@@ -1013,12 +1235,12 @@ button {
 .mic-meta {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
 }
 
 .mic-status {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 620;
   color: var(--text-dim);
 }
 
@@ -1037,7 +1259,7 @@ button {
   height: 14px;
 }
 
-/* ------------------------------------------------------------- help sheet */
+/* -------------------------------------------------------------- help sheet */
 
 .sheet {
   width: min(560px, calc(100vw - 32px));
@@ -1052,8 +1274,8 @@ button {
 }
 
 .sheet::backdrop {
-  background: rgba(8, 10, 14, 0.55);
-  backdrop-filter: blur(2px);
+  background: rgba(6, 12, 14, 0.55);
+  backdrop-filter: blur(3px);
 }
 
 .sheet-head {
@@ -1069,32 +1291,27 @@ button {
 }
 
 .sheet-body {
-  padding: 14px 16px 20px;
+  padding: 16px;
   overflow-y: auto;
   max-height: calc(82dvh - 58px);
 }
 
 .help-group + .help-group {
-  margin-top: 16px;
+  margin-top: 20px;
 }
 
 .help-group h3 {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .help-examples {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
 }
 
 .help-example {
-  padding: 7px 11px;
+  padding: 9px 12px;
   border-radius: var(--radius-sm);
   background: var(--surface-2);
   border: 1px solid var(--border);
@@ -1102,14 +1319,32 @@ button {
   text-align: left;
   width: 100%;
   color: var(--text);
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.help-example::before {
+  content: '“';
+  color: var(--text-faint);
+}
+
+.help-example::after {
+  content: '”';
+  color: var(--text-faint);
 }
 
 .help-example:hover {
   border-color: var(--accent);
+  background: var(--accent-soft);
   color: var(--accent);
 }
 
-.help-example code {
-  font-family: inherit;
-  font-style: italic;
+/* The "alternatives to X" header inside the suggestions panel. */
+.substitutes-head {
+  justify-content: space-between;
+  padding-bottom: 8px;
+}
+
+.substitutes-head strong {
+  font-size: 13px;
+  font-weight: 650;
 }

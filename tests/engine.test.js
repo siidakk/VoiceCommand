@@ -16,7 +16,7 @@ import { search } from '../shared/engine/search.js';
 import { applyCommand, applyAll, RESULT } from '../shared/engine/executor.js';
 import { parse, parseOne, INTENTS } from '../shared/nlp/index.js';
 import { parseFilters } from '../shared/nlp/filters.js';
-import { seasonalPicks, salePrice, isAvailable } from '../shared/data/seasonal.js';
+import { seasonalPicks, salePrice, isAvailable, PROMOTIONS } from '../shared/data/seasonal.js';
 import { CATALOG, CATALOG_BY_ID, localizedName } from '../shared/data/catalog.js';
 import { SUBSTITUTES } from '../shared/data/substitutes.js';
 
@@ -156,7 +156,8 @@ describe('list manager', () => {
     assert.equal(totals.total, 2);
     assert.equal(totals.priced, 1);
     assert.equal(totals.unpriced, 1);
-    assert.equal(totals.estimatedUsd, 6.98);
+    // Milk is Rs 66 a litre; the free-text item contributes nothing.
+    assert.equal(totals.estimated, 132);
   });
 
   test('hydrate repairs arbitrary persisted junk', () => {
@@ -294,9 +295,15 @@ describe('seasonal', () => {
   });
 
   test('sale price applies the discount', () => {
-    // Olive oil is 25% off $9.20.
-    assert.equal(salePrice('olive_oil'), 6.9);
+    // Olive oil is 25% off Rs 650, rounded to whole rupees.
+    assert.equal(salePrice('olive_oil'), 488);
     assert.equal(salePrice('lettuce'), CATALOG_BY_ID.get('lettuce').price);
+  });
+
+  test('sale prices are whole rupees', () => {
+    for (const id of Object.keys(PROMOTIONS)) {
+      assert.equal(salePrice(id) % 1, 0, id + ' sale price is not a whole rupee');
+    }
   });
 });
 
@@ -307,21 +314,28 @@ describe('search', () => {
     return search(filters, { lang });
   };
 
-  test('applies a spoken price ceiling', () => {
-    const outcome = run('find toothpaste under 5 dollars');
+  test('applies a spoken price ceiling in rupees', () => {
+    const outcome = run('find toothpaste under 200 rupees');
     assert.equal(outcome.total, 1);
     assert.equal(outcome.results[0].id, 'toothpaste');
-    assert.ok(outcome.results[0].salePrice <= 5);
+    assert.ok(outcome.results[0].salePrice <= 200);
   });
 
-  test('converts a foreign currency before comparing', () => {
-    // 500 INR is about $6, so the $5.52 sale price of shampoo qualifies.
-    const outcome = run('find shampoo under 500 rupees');
+  test('converts a foreign currency into the rupee base', () => {
+    // The catalog is priced in rupees, so "5 dollars" has to become Rs 415
+    // before it can be compared with anything. Toothpaste is Rs 95.
+    const outcome = run('find toothpaste under 5 dollars');
+    assert.equal(outcome.priceRange.max, 415);
     assert.ok(outcome.total >= 1);
-    assert.ok(outcome.priceRangeUsd.max > 5 && outcome.priceRangeUsd.max < 7);
+  });
+
+  test('a bare number is read as rupees', () => {
+    assert.equal(run('find toothpaste under 200').priceRange.max, 200);
   });
 
   test('excludes items above the ceiling', () => {
+    // Rs 40 buys no shampoo, and $1 (Rs 83) does not either.
+    assert.equal(run('find shampoo under 40 rupees').total, 0);
     assert.equal(run('find shampoo under 1 dollar').total, 0);
   });
 

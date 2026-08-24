@@ -23,7 +23,13 @@ import { Speaker, isSupported as ttsSupported } from './tts.js';
 import { $, $$, el, render } from './ui/dom.js';
 import { renderList } from './ui/list-view.js';
 import { renderPanels } from './ui/panel-view.js';
-import { renderTranscript, renderActionChips, renderError, announce } from './ui/feedback.js';
+import {
+  renderTranscript,
+  renderActionChips,
+  renderError,
+  renderRunningLow,
+  announce
+} from './ui/feedback.js';
 import { openHelp } from './ui/help.js';
 
 import { LANGUAGES, t } from '../../shared/i18n/index.js';
@@ -45,6 +51,7 @@ const refs = {
   transcriptConfidence: $('#transcript-confidence'),
   transcriptChips: $('#transcript-chips'),
 
+  alertSlot: $('#alert-slot'),
   errorSlot: $('#error-slot'),
 
   listBody: $('#list-body'),
@@ -149,6 +156,15 @@ const panelHandlers = {
   onDismissSubstitutes: () => store.dismissSubstitutes()
 };
 
+const alertHandlers = {
+  onAddLow: async () => {
+    const message = store.panels.runningLow?.message;
+    await store.addRunningLow();
+    if (message) announce(refs, message);
+  },
+  onDismissLow: () => store.dismissRunningLow()
+};
+
 const feedbackHandlers = {
   /** Replace a badly-matched item with the alternative the user picked. */
   onSwap: async (itemId, alternative) => {
@@ -167,6 +183,7 @@ function renderAll() {
   renderPanels(refs, store, panelHandlers);
   renderTranscript(refs, store);
   renderActionChips(refs, store, feedbackHandlers);
+  renderRunningLow(refs, store, alertHandlers);
   renderError(refs, store, feedbackHandlers);
   renderConnection();
   renderMicState();

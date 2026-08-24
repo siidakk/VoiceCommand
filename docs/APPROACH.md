@@ -67,6 +67,19 @@ purchases once there are at least two intervals to learn from, and only falls ba
 to the catalog's generic `cycleDays` before that. An item surfaces at 80% of its
 interval: early enough to be useful, late enough to be right.
 
+### Pricing in rupees
+
+The catalog models an Indian grocery store, so prices are rupees — and they are
+*written* as rupees rather than converted from dollars. A mechanical conversion
+would have priced milk at Rs 290 a litre instead of Rs 66, producing a catalog no
+Indian shopper would recognise and making every "under X" search meaningless.
+
+The multi-currency machinery survives, but it serves input rather than output:
+"under five dollars" is converted to Rs 415 before comparison, and the interface
+shows the converted figure so the user can see what was understood. Every locale
+displays rupees, because switching the interface language changes the words, not
+the shop.
+
 ### Honest failure
 
 Three places where the app admits uncertainty instead of hiding it:

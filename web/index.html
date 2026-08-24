@@ -32,6 +32,10 @@
         </div>
 
         <div class="topbar-controls">
+          <!-- Prices are rupees in every language: the catalog is one Indian
+               shop, so switching language changes the words, not the store. -->
+          <span class="badge currency-badge" id="currency-badge" title="Prices in Indian rupees">₹ INR</span>
+
           <span
             class="badge"
             id="connection-badge"
@@ -70,6 +74,10 @@
         <p class="transcript-text" id="transcript-text"></p>
         <div class="transcript-chips" id="transcript-chips"></div>
       </section>
+
+      <!-- Proactive repurchase prediction. Shown without being asked, because a
+           prediction you have to request is not much of a prediction. -->
+      <div id="alert-slot"></div>
 
       <div id="error-slot"></div>
 

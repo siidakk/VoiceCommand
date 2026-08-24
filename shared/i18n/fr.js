@@ -7,7 +7,7 @@ export default {
   speech: 'fr-FR',
   name: 'French',
   nativeName: 'Français',
-  currency: 'EUR',
+  currency: 'INR',
 
   strings: {
     'category.produce': 'Fruits et légumes',
@@ -45,6 +45,10 @@ export default {
     'suggest.pairsWith': 'Se marie bien avec {item}',
     'suggest.staple': 'Un basique du quotidien',
     'suggest.outOfStock': '{item} est en rupture',
+    'alert.runningLow': 'On dirait que vous n\'avez presque plus de {item}',
+    'alert.runningLowMore': 'On dirait que vous n\'avez presque plus de {item} et {count} autres',
+    'alert.addIt': 'Ajouter',
+    'alert.addAll': 'Tout ajouter',
 
     'event.newYear': 'Bonnes résolutions du Nouvel An',
     'event.spring': 'Printemps',
@@ -100,6 +104,8 @@ export default {
     'say.marked': '{item} marqué comme acheté',
     'say.notFound': 'Je n\'ai pas trouvé {item} dans votre liste',
     'say.listSummary': 'Vous avez {count} articles sur la liste',
+    'say.listReadout': '{count} articles : {items}',
+    'say.listRemaining': 'Reste à prendre : {items}',
     'say.listEmpty': 'Votre liste est vide',
     'say.searchResults': 'J\'ai trouvé {count} résultats pour {query}',
     'say.searchResultsOne': 'J\'ai trouvé un résultat pour {query}',

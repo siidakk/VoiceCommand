@@ -29,7 +29,20 @@ const CONTRACTIONS = [
   [/\bgotta\b/g, 'got to'],
   [/\bgimme\b/g, 'give me'],
   [/\bpls\b/g, 'please'],
-  [/\bplz\b/g, 'please']
+  [/\bplz\b/g, 'please'],
+
+  // "X's" -> "X is", but ONLY for this closed list of question and pronoun
+  // words. Expanding it generally would turn brand names into nonsense —
+  // "Hellmann's" would become "Hellmann is" and never match the catalog.
+  [/\bwhat'?s\b/g, 'what is'],
+  [/\bwhere'?s\b/g, 'where is'],
+  [/\bwho'?s\b/g, 'who is'],
+  [/\bthat'?s\b/g, 'that is'],
+  [/\bthere'?s\b/g, 'there is'],
+  [/\bhere'?s\b/g, 'here is'],
+  [/\bit'?s\b/g, 'it is'],
+  [/\bhe'?s\b/g, 'he is'],
+  [/\bshe'?s\b/g, 'she is']
 ];
 
 /**

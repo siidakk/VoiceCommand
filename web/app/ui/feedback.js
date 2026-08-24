@@ -144,6 +144,45 @@ export function renderActionChips(refs, store, handlers) {
 }
 
 /**
+ * The proactive "running low" alert.
+ *
+ * Rendered above the list rather than inside the suggestions panel because it
+ * is a prediction the user did not ask for — it has to be visible without
+ * anyone switching tabs, which is the whole point of predicting.
+ */
+export function renderRunningLow(refs, store, handlers) {
+  const low = store.panels.runningLow;
+
+  if (!low) {
+    clear(refs.alertSlot);
+    return;
+  }
+
+  const lang = store.lang;
+
+  const banner = el('div', { className: 'alert' }, [
+    el('span', { className: 'alert-icon', attrs: { 'aria-hidden': 'true' } }, ['\u{1F4E6}']),
+    el('p', { className: 'alert-text', text: low.message }),
+    el('div', { className: 'alert-actions' }, [
+      el('button', {
+        className: 'alert-add',
+        text: low.items.length > 1 ? t(lang, 'alert.addAll') : t(lang, 'alert.addIt'),
+        attrs: { type: 'button' },
+        on: { click: handlers.onAddLow }
+      }),
+      el('button', {
+        className: 'alert-dismiss',
+        text: '\u00d7',
+        attrs: { type: 'button', 'aria-label': t(lang, 'error.dismiss') },
+        on: { click: handlers.onDismissLow }
+      })
+    ])
+  ]);
+
+  render(refs.alertSlot, banner);
+}
+
+/**
  * Render the error banner.
  *
  * Errors carry a severity: a missing server is a `warn` (the app still works

@@ -14,7 +14,7 @@ export default {
   speech: 'en-US',
   name: 'English',
   nativeName: 'English',
-  currency: 'USD',
+  currency: 'INR',
 
   strings: {
     // ------------------------------------------------------------ categories
@@ -55,6 +55,10 @@ export default {
     'suggest.pairsWith': 'Goes well with {item}',
     'suggest.staple': 'A common staple',
     'suggest.outOfStock': '{item} is out of stock',
+    'alert.runningLow': "It looks like you're running low on {item}",
+    'alert.runningLowMore': "It looks like you're running low on {item} and {count} more",
+    'alert.addIt': 'Add it',
+    'alert.addAll': 'Add all',
 
     // ------------------------------------------------------ seasonal events
     'event.newYear': 'New Year healthy eating',
@@ -117,6 +121,8 @@ export default {
     'say.marked': 'Marked {item} as bought',
     'say.notFound': 'I could not find {item} on your list',
     'say.listSummary': 'You have {count} items on the list',
+    'say.listReadout': '{count} items: {items}',
+    'say.listRemaining': 'Still to get: {items}',
     'say.listEmpty': 'Your list is empty',
     'say.searchResults': 'I found {count} matches for {query}',
     'say.searchResultsOne': 'I found one match for {query}',

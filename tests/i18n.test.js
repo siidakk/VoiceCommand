@@ -19,7 +19,8 @@ import {
   resolveLang,
   currencyFor,
   formatCurrency,
-  toUsd,
+  toBaseCurrency,
+  BASE_CURRENCY,
   speechTag,
   categoryLabel,
   itemCount
@@ -125,27 +126,40 @@ describe('language resolution', () => {
 });
 
 describe('currency', () => {
-  test('each language has a default currency', () => {
-    assert.equal(currencyFor('en'), 'USD');
-    assert.equal(currencyFor('hi'), 'INR');
-    assert.equal(currencyFor('fr'), 'EUR');
+  test('the catalog base is rupees', () => {
+    assert.equal(BASE_CURRENCY, 'INR');
   });
 
-  test('formats an amount in the language currency', () => {
-    assert.match(formatCurrency(3.49, 'en'), /\$3\.49/);
-    assert.match(formatCurrency(3.49, 'hi'), /₹/);
-    assert.match(formatCurrency(3.49, 'fr'), /€/);
+  test('every language shows rupees, because they all describe one shop', () => {
+    for (const code of Object.keys(LOCALES)) {
+      assert.equal(currencyFor(code), 'INR', code + ' should display rupees');
+    }
+  });
+
+  test('formats rupees in every language', () => {
+    for (const code of Object.keys(LOCALES)) {
+      assert.match(formatCurrency(66, code), /₹/);
+    }
   });
 
   test('rupees are shown whole, since paise are noise on a grocery list', () => {
-    assert.doesNotMatch(formatCurrency(3.49, 'hi'), /\./);
+    assert.doesNotMatch(formatCurrency(66.4, 'hi'), /\./);
+    assert.match(formatCurrency(66, 'en'), /66/);
   });
 
-  test('toUsd inverts the conversion', () => {
-    const usd = 5;
-    const inr = usd * 83;
-    assert.ok(Math.abs(toUsd(inr, 'hi') - usd) < 0.001);
-    assert.equal(toUsd(5, 'en'), 5);
+  test('groups large amounts the Indian way', () => {
+    // 1,00,000 rather than 100,000.
+    assert.match(formatCurrency(100000, 'en'), /1,00,000/);
+  });
+
+  test('can render a rupee amount in another currency on request', () => {
+    assert.match(formatCurrency(830, 'en', 'USD'), /\$10\.00/);
+  });
+
+  test('toBaseCurrency turns a spoken amount into rupees', () => {
+    assert.ok(Math.abs(toBaseCurrency(5, 'en', 'USD') - 415) < 0.001);
+    // A bare number is already rupees.
+    assert.equal(toBaseCurrency(500, 'en'), 500);
   });
 
   test('an unknown currency does not throw', () => {

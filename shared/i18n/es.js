@@ -7,7 +7,7 @@ export default {
   speech: 'es-ES',
   name: 'Spanish',
   nativeName: 'Español',
-  currency: 'EUR',
+  currency: 'INR',
 
   strings: {
     'category.produce': 'Frutas y verduras',
@@ -45,6 +45,10 @@ export default {
     'suggest.pairsWith': 'Combina bien con {item}',
     'suggest.staple': 'Un básico habitual',
     'suggest.outOfStock': '{item} está agotado',
+    'alert.runningLow': 'Parece que se te está acabando {item}',
+    'alert.runningLowMore': 'Parece que se te están acabando {item} y {count} más',
+    'alert.addIt': 'Añadir',
+    'alert.addAll': 'Añadir todo',
 
     'event.newYear': 'Alimentación sana de Año Nuevo',
     'event.spring': 'Primavera',
@@ -100,6 +104,8 @@ export default {
     'say.marked': '{item} marcado como comprado',
     'say.notFound': 'No encontré {item} en tu lista',
     'say.listSummary': 'Tienes {count} artículos en la lista',
+    'say.listReadout': '{count} artículos: {items}',
+    'say.listRemaining': 'Aún por comprar: {items}',
     'say.listEmpty': 'Tu lista está vacía',
     'say.searchResults': 'Encontré {count} resultados para {query}',
     'say.searchResultsOne': 'Encontré un resultado para {query}',

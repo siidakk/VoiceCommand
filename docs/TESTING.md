@@ -93,11 +93,21 @@ Open <http://localhost:3000> in Chrome, Edge, or Safari.
 
 | # | Say | Expect |
 |---|---|---|
-| 18 | "find toothpaste under 5 dollars" | Search tab opens, 1 result, `under $5.00` filter chip |
+| 18 | "find toothpaste under 200 rupees" | Search tab opens, 1 result, `under ₹200` filter chip |
+| 18b | "find toothpaste under 5 dollars" | Same result, but the chip reads `under ₹415` — the conversion is shown, not hidden |
 | 19 | "find me organic apples" | Filtered by the organic tag |
 | 20 | "find gluten free bread" | Returns bread **and says the attribute was relaxed** |
 | 21 | "find dairy" | Browses the whole dairy category |
 | 22 | "what can I use instead of milk" | Almond / Oat / Soy Milk with reasons |
+
+### Proactive suggestions
+
+| # | Do | Expect |
+|---|---|---|
+| 22a | Add bread, mark it bought, repeat over several days | A banner appears: *"It looks like you're running low on Bread"* |
+| 22b | Tap **Add it** on that banner | Bread is added and the banner clears |
+| 22c | Tap **×** instead | Banner clears and stays gone for that product |
+| 22d | "what should I buy" | The spoken reply leads with the running-low item |
 
 ### Multilingual
 
@@ -105,7 +115,7 @@ Switch the language picker, then:
 
 | Language | Say | Expect |
 |---|---|---|
-| हिन्दी | "दो लीटर दूध जोड़ो" | दूध × 2 लीटर, reply "दूध 2 लीटर जोड़ दिया", prices in ₹ |
+| हिन्दी | "दो लीटर दूध जोड़ो" | दूध × 2 लीटर, reply "दूध 2 लीटर जोड़ दिया" |
 | Español | "añade dos litros de leche" | Leche × 2 L, reply "Añadido 2 L de leche", prices in € |
 | Français | "ajoute deux litres de lait" | Lait × 2 L, reply "2 L de lait ajouté", prices in € |
 

@@ -24,7 +24,7 @@ import { CATALOG, ALL_BRANDS, ALL_TAGS, getProduct } from '../../shared/data/cat
 import { CATEGORIES } from '../../shared/data/categories.js';
 import { LANGUAGES, resolveLang, formatCurrency } from '../../shared/i18n/index.js';
 
-/** Attach a localised price string to anything carrying USD amounts. */
+/** Attach a formatted price string to anything carrying a base-currency amount. */
 function withPrices(rows, lang) {
   return rows.map((row) => ({
     ...row,

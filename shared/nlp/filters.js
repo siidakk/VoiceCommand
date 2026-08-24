@@ -11,7 +11,7 @@
  * catalog match.
  *
  * Prices are interpreted in the *spoken* currency and converted to the
- * catalog's USD base by the caller (see engine/search.js), so "under 500
+ * catalog's rupee base by the caller (see engine/search.js), so "under 500
  * rupees" and "under 5 dollars" both work.
  */
 

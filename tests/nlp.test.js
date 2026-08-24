@@ -33,6 +33,23 @@ describe('normalize', () => {
     assert.equal(normalize("I'm out of milk"), 'i am out of milk');
   });
 
+  test("expands \"what's\" so the read-list command matches", () => {
+    // Regression: "What's on my list" normalised to "whats on my list" and
+    // missed the "what is on my list" template, so a help-sheet example that
+    // reviewers tap did nothing.
+    assert.equal(normalize("What's on my list"), 'what is on my list');
+    assert.equal(normalize("Where's the milk"), 'where is the milk');
+  });
+
+  test('does not turn a possessive brand name into a verb', () => {
+    // The "X's -> X is" rule is restricted to question and pronoun words for
+    // exactly this reason: "Hellmann is" would match nothing in the catalog.
+    // The possessive just loses its apostrophe, and because the catalog side
+    // is normalised the same way, the brand still matches.
+    assert.equal(normalize("Hellmann's mayonnaise"), 'hellmann s mayonnaise');
+    assert.doesNotMatch(normalize("Eggland's Best"), /\bis\b/);
+  });
+
   test('folds Latin diacritics', () => {
     assert.equal(normalize('Añade plátanos'), 'anade platanos');
     assert.equal(normalize('épinards'), 'epinards');
@@ -184,6 +201,13 @@ describe('grammar', () => {
     assert.equal(match.intent, INTENTS.UPDATE_QTY);
     assert.equal(match.quantity, 3);
     assert.equal(match.payload, 'milk');
+  });
+
+  test('tolerates a hyphen where a template has a space', () => {
+    // Regression: French inverts and hyphenates questions, so "que dois-je
+    // acheter" never matched the "que dois je acheter" template.
+    assert.equal(intentOf('que dois-je acheter', 'fr'), INTENTS.SUGGEST);
+    assert.equal(intentOf('que dois je acheter', 'fr'), INTENTS.SUGGEST);
   });
 
   test('recognises intents in every supported language', () => {

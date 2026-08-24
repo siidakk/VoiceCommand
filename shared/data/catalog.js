@@ -7,14 +7,16 @@
  * household re-buys it (running-low predictions) and what it is called in each
  * supported language (multilingual matching).
  *
- * Prices are USD to match the assignment's "toothpaste under $5" example; the
- * UI can render another currency via shared/i18n/index.js formatCurrency().
+ * Prices are Indian rupees, and are plausible Indian shelf prices rather than
+ * a currency conversion of dollar figures: a litre of milk is Rs 66, not
+ * Rs 290. Spoken prices in other currencies ("under five dollars") are
+ * converted into this base before comparison — see shared/engine/search.js.
  *
  * Field reference
  *   id        stable key, also used in purchase history
  *   name      canonical English display name
  *   category  category id from shared/data/categories.js
- *   price     typical unit price in USD
+ *   price     typical Indian retail price, in rupees, for one `unit`
  *   unit      noun used when speaking a quantity ("2 bottles of water")
  *   brands    brands matched when the user names one
  *   sizes     pack sizes matched when the user names one
@@ -44,7 +46,7 @@ const P = (id, name, category, price, unit, extra = {}) => ({
 
 export const CATALOG = [
   // ----------------------------------------------------------------- produce
-  P('apple', 'Apples', 'produce', 3.2, 'kg', {
+  P('apple', 'Apples', 'produce', 180, 'kg', {
     brands: ['Washington', 'Pink Lady', 'Granny Smith'],
     sizes: ['500 g', '1 kg', '2 kg'],
     tags: ['organic', 'fresh', 'fruit'],
@@ -53,7 +55,7 @@ export const CATALOG = [
     cycleDays: 7,
     season: [9, 10, 11]
   }),
-  P('banana', 'Bananas', 'produce', 1.4, 'dozen', {
+  P('banana', 'Bananas', 'produce', 60, 'dozen', {
     brands: ['Chiquita', 'Dole'],
     sizes: ['6 pcs', '12 pcs', '1 kg'],
     tags: ['fresh', 'fruit'],
@@ -61,7 +63,7 @@ export const CATALOG = [
     alias: { hi: ['केला', 'kela'], es: ['plátano', 'plátanos', 'banana'], fr: ['banane', 'bananes'] },
     cycleDays: 5
   }),
-  P('orange', 'Oranges', 'produce', 2.9, 'kg', {
+  P('orange', 'Oranges', 'produce', 90, 'kg', {
     brands: ['Sunkist', 'Valencia'],
     sizes: ['1 kg', '2 kg'],
     tags: ['fresh', 'fruit', 'citrus'],
@@ -70,7 +72,7 @@ export const CATALOG = [
     cycleDays: 10,
     season: [12, 1, 2, 3]
   }),
-  P('tomato', 'Tomatoes', 'produce', 2.1, 'kg', {
+  P('tomato', 'Tomatoes', 'produce', 40, 'kg', {
     brands: ['Roma', 'Cherry'],
     sizes: ['500 g', '1 kg'],
     tags: ['fresh', 'vegetable'],
@@ -79,33 +81,33 @@ export const CATALOG = [
     cycleDays: 6,
     season: [6, 7, 8, 9]
   }),
-  P('potato', 'Potatoes', 'produce', 1.6, 'kg', {
+  P('potato', 'Potatoes', 'produce', 35, 'kg', {
     sizes: ['1 kg', '2 kg', '5 kg'],
     tags: ['fresh', 'vegetable'],
     syn: ['potato'],
     alias: { hi: ['आलू', 'aloo'], es: ['papa', 'patata', 'patatas'], fr: ['pomme de terre'] },
     cycleDays: 14
   }),
-  P('onion', 'Onions', 'produce', 1.8, 'kg', {
+  P('onion', 'Onions', 'produce', 40, 'kg', {
     sizes: ['1 kg', '2 kg'],
     tags: ['fresh', 'vegetable'],
     syn: ['onion', 'red onion'],
     alias: { hi: ['प्याज', 'pyaz'], es: ['cebolla', 'cebollas'], fr: ['oignon', 'oignons'] },
     cycleDays: 14
   }),
-  P('garlic', 'Garlic', 'produce', 0.9, 'pack', {
+  P('garlic', 'Garlic', 'produce', 45, 'pack', {
     sizes: ['100 g', '250 g'],
     tags: ['fresh', 'vegetable', 'aromatic'],
     alias: { hi: ['लहसुन', 'lehsun'], es: ['ajo'], fr: ['ail'] },
     cycleDays: 21
   }),
-  P('ginger', 'Ginger', 'produce', 1.2, 'pack', {
+  P('ginger', 'Ginger', 'produce', 40, 'pack', {
     sizes: ['100 g', '250 g'],
     tags: ['fresh', 'aromatic'],
     alias: { hi: ['अदरक', 'adrak'], es: ['jengibre'], fr: ['gingembre'] },
     cycleDays: 21
   }),
-  P('carrot', 'Carrots', 'produce', 1.5, 'kg', {
+  P('carrot', 'Carrots', 'produce', 50, 'kg', {
     sizes: ['500 g', '1 kg'],
     tags: ['fresh', 'vegetable', 'organic'],
     syn: ['carrot'],
@@ -113,35 +115,35 @@ export const CATALOG = [
     cycleDays: 10,
     season: [11, 12, 1, 2]
   }),
-  P('spinach', 'Spinach', 'produce', 2.4, 'bunch', {
+  P('spinach', 'Spinach', 'produce', 30, 'bunch', {
     sizes: ['200 g', '500 g'],
     tags: ['fresh', 'vegetable', 'leafy', 'organic'],
     alias: { hi: ['पालक', 'palak'], es: ['espinaca', 'espinacas'], fr: ['épinards'] },
     cycleDays: 7,
     season: [3, 4, 5, 10, 11]
   }),
-  P('broccoli', 'Broccoli', 'produce', 2.8, 'head', {
+  P('broccoli', 'Broccoli', 'produce', 80, 'head', {
     sizes: ['1 head', '500 g'],
     tags: ['fresh', 'vegetable'],
     alias: { hi: ['ब्रोकली'], es: ['brócoli'], fr: ['brocoli'] },
     cycleDays: 10,
     season: [10, 11, 12, 1]
   }),
-  P('cucumber', 'Cucumber', 'produce', 1.1, 'pcs', {
+  P('cucumber', 'Cucumber', 'produce', 20, 'pcs', {
     sizes: ['1 pc', '3 pcs'],
     tags: ['fresh', 'vegetable'],
     alias: { hi: ['खीरा', 'kheera'], es: ['pepino'], fr: ['concombre'] },
     cycleDays: 7,
     season: [5, 6, 7, 8]
   }),
-  P('lettuce', 'Lettuce', 'produce', 2.2, 'head', {
+  P('lettuce', 'Lettuce', 'produce', 70, 'head', {
     sizes: ['1 head'],
     tags: ['fresh', 'vegetable', 'leafy', 'salad'],
     syn: ['iceberg lettuce', 'romaine'],
     alias: { es: ['lechuga'], fr: ['laitue'] },
     cycleDays: 7
   }),
-  P('bell_pepper', 'Bell Peppers', 'produce', 3.1, 'kg', {
+  P('bell_pepper', 'Bell Peppers', 'produce', 120, 'kg', {
     sizes: ['250 g', '500 g'],
     tags: ['fresh', 'vegetable'],
     // No bare "peppers": it singularises to "pepper", which "salt and pepper"
@@ -151,34 +153,34 @@ export const CATALOG = [
     cycleDays: 10,
     season: [7, 8, 9]
   }),
-  P('mushroom', 'Mushrooms', 'produce', 3.6, 'pack', {
+  P('mushroom', 'Mushrooms', 'produce', 90, 'pack', {
     sizes: ['200 g', '400 g'],
     tags: ['fresh', 'vegetable'],
     alias: { hi: ['मशरूम'], es: ['champiñones'], fr: ['champignons'] },
     cycleDays: 10
   }),
-  P('lemon', 'Lemons', 'produce', 1.7, 'pack', {
+  P('lemon', 'Lemons', 'produce', 40, 'pack', {
     sizes: ['4 pcs', '500 g'],
     tags: ['fresh', 'fruit', 'citrus'],
     syn: ['lemon', 'lime', 'limes'],
     alias: { hi: ['नींबू', 'nimbu'], es: ['limón', 'limones'], fr: ['citron', 'citrons'] },
     cycleDays: 12
   }),
-  P('avocado', 'Avocado', 'produce', 2.5, 'pcs', {
+  P('avocado', 'Avocado', 'produce', 150, 'pcs', {
     brands: ['Hass'],
     sizes: ['1 pc', '2 pcs'],
     tags: ['fresh', 'fruit', 'organic'],
     alias: { es: ['aguacate'], fr: ['avocat'] },
     cycleDays: 7
   }),
-  P('grapes', 'Grapes', 'produce', 4.2, 'kg', {
+  P('grapes', 'Grapes', 'produce', 110, 'kg', {
     sizes: ['500 g', '1 kg'],
     tags: ['fresh', 'fruit'],
     alias: { hi: ['अंगूर', 'angoor'], es: ['uvas'], fr: ['raisins'] },
     cycleDays: 10,
     season: [8, 9, 10]
   }),
-  P('strawberry', 'Strawberries', 'produce', 4.8, 'pack', {
+  P('strawberry', 'Strawberries', 'produce', 180, 'pack', {
     sizes: ['250 g', '500 g'],
     tags: ['fresh', 'fruit', 'berries'],
     syn: ['strawberry'],
@@ -186,7 +188,7 @@ export const CATALOG = [
     cycleDays: 10,
     season: [4, 5, 6]
   }),
-  P('mango', 'Mangoes', 'produce', 3.9, 'kg', {
+  P('mango', 'Mangoes', 'produce', 150, 'kg', {
     brands: ['Alphonso', 'Kesar'],
     sizes: ['1 kg', '2 kg'],
     tags: ['fresh', 'fruit', 'seasonal'],
@@ -195,35 +197,35 @@ export const CATALOG = [
     cycleDays: 10,
     season: [4, 5, 6, 7]
   }),
-  P('watermelon', 'Watermelon', 'produce', 5.0, 'pcs', {
+  P('watermelon', 'Watermelon', 'produce', 90, 'pcs', {
     sizes: ['1 pc'],
     tags: ['fresh', 'fruit', 'seasonal'],
     alias: { hi: ['तरबूज', 'tarbooj'], es: ['sandía'], fr: ['pastèque'] },
     cycleDays: 14,
     season: [5, 6, 7, 8]
   }),
-  P('coriander', 'Coriander', 'produce', 0.8, 'bunch', {
+  P('coriander', 'Coriander', 'produce', 15, 'bunch', {
     sizes: ['1 bunch'],
     tags: ['fresh', 'herbs'],
     syn: ['cilantro', 'fresh coriander'],
     alias: { hi: ['धनिया', 'dhania'], es: ['cilantro'], fr: ['coriandre'] },
     cycleDays: 5
   }),
-  P('green_chilli', 'Green Chillies', 'produce', 1.0, 'pack', {
+  P('green_chilli', 'Green Chillies', 'produce', 25, 'pack', {
     sizes: ['100 g', '250 g'],
     tags: ['fresh', 'vegetable', 'spicy'],
     syn: ['chilli', 'chillies', 'green chili'],
     alias: { hi: ['हरी मिर्च', 'hari mirch'], es: ['chile verde'], fr: ['piment vert'] },
     cycleDays: 10
   }),
-  P('cauliflower', 'Cauliflower', 'produce', 2.3, 'head', {
+  P('cauliflower', 'Cauliflower', 'produce', 45, 'head', {
     sizes: ['1 head'],
     tags: ['fresh', 'vegetable'],
     alias: { hi: ['फूलगोभी', 'gobi'], es: ['coliflor'], fr: ['chou-fleur'] },
     cycleDays: 10,
     season: [10, 11, 12, 1, 2]
   }),
-  P('peas', 'Green Peas', 'produce', 2.6, 'pack', {
+  P('peas', 'Green Peas', 'produce', 60, 'pack', {
     sizes: ['250 g', '500 g'],
     tags: ['fresh', 'vegetable'],
     alias: { hi: ['मटर', 'matar'], es: ['guisantes'], fr: ['petits pois'] },
@@ -232,7 +234,7 @@ export const CATALOG = [
   }),
 
   // ------------------------------------------------------------------ bakery
-  P('bread', 'Bread', 'bakery', 2.5, 'loaf', {
+  P('bread', 'Bread', 'bakery', 45, 'loaf', {
     brands: ['Wonder', 'Harvest Gold', 'Britannia'],
     sizes: ['400 g', '700 g'],
     tags: ['whole wheat', 'white'],
@@ -240,7 +242,7 @@ export const CATALOG = [
     alias: { hi: ['ब्रेड', 'ब्रैड', 'double roti'], es: ['pan'], fr: ['pain', 'baguette'] },
     cycleDays: 4
   }),
-  P('brown_bread', 'Brown Bread', 'bakery', 3.1, 'loaf', {
+  P('brown_bread', 'Brown Bread', 'bakery', 55, 'loaf', {
     brands: ['Harvest Gold', 'Britannia'],
     sizes: ['400 g'],
     tags: ['whole wheat', 'high fibre'],
@@ -248,21 +250,21 @@ export const CATALOG = [
     alias: { es: ['pan integral'], fr: ['pain complet'] },
     cycleDays: 5
   }),
-  P('bagel', 'Bagels', 'bakery', 3.4, 'pack', {
+  P('bagel', 'Bagels', 'bakery', 120, 'pack', {
     sizes: ['4 pcs', '6 pcs'],
     tags: ['breakfast'],
     syn: ['bagel'],
     alias: { es: ['bagels'], fr: ['bagels'] },
     cycleDays: 10
   }),
-  P('croissant', 'Croissants', 'bakery', 4.0, 'pack', {
+  P('croissant', 'Croissants', 'bakery', 160, 'pack', {
     sizes: ['4 pcs'],
     tags: ['breakfast', 'pastry'],
     syn: ['croissant'],
     alias: { es: ['cruasán'], fr: ['croissant', 'croissants'] },
     cycleDays: 12
   }),
-  P('tortilla', 'Tortillas', 'bakery', 2.9, 'pack', {
+  P('tortilla', 'Tortillas', 'bakery', 90, 'pack', {
     brands: ['Mission', 'Old El Paso'],
     sizes: ['6 pcs', '10 pcs'],
     tags: ['wraps'],
@@ -270,21 +272,21 @@ export const CATALOG = [
     alias: { es: ['tortillas'], fr: ['tortillas'] },
     cycleDays: 14
   }),
-  P('buns', 'Burger Buns', 'bakery', 2.2, 'pack', {
+  P('buns', 'Burger Buns', 'bakery', 40, 'pack', {
     sizes: ['4 pcs', '6 pcs'],
     tags: [],
     syn: ['buns', 'hot dog buns', 'burger bun'],
     alias: { es: ['panecillos'], fr: ['pains à burger'] },
     cycleDays: 14
   }),
-  P('cake', 'Cake', 'bakery', 12.0, 'pcs', {
+  P('cake', 'Cake', 'bakery', 450, 'pcs', {
     brands: ['Sara Lee'],
     sizes: ['500 g', '1 kg'],
     tags: ['dessert'],
     alias: { hi: ['केक'], es: ['pastel'], fr: ['gâteau'] },
     cycleDays: 30
   }),
-  P('muffin', 'Muffins', 'bakery', 4.5, 'pack', {
+  P('muffin', 'Muffins', 'bakery', 150, 'pack', {
     sizes: ['4 pcs', '6 pcs'],
     tags: ['breakfast', 'dessert'],
     syn: ['muffin'],
@@ -293,7 +295,7 @@ export const CATALOG = [
   }),
 
   // ------------------------------------------------------------------- dairy
-  P('milk', 'Milk', 'dairy', 3.49, 'bottle', {
+  P('milk', 'Milk', 'dairy', 66, 'bottle', {
     brands: ['Amul', 'Nestlé', 'DairyPure', 'Horizon'],
     sizes: ['500 ml', '1 L', '2 L'],
     tags: ['whole', 'skimmed', 'organic'],
@@ -301,7 +303,7 @@ export const CATALOG = [
     alias: { hi: ['दूध', 'doodh'], es: ['leche'], fr: ['lait'] },
     cycleDays: 3
   }),
-  P('almond_milk', 'Almond Milk', 'dairy', 4.2, 'carton', {
+  P('almond_milk', 'Almond Milk', 'dairy', 250, 'carton', {
     brands: ['Almond Breeze', 'Silk', 'Alpro'],
     sizes: ['1 L'],
     tags: ['vegan', 'dairy-free', 'unsweetened'],
@@ -309,7 +311,7 @@ export const CATALOG = [
     alias: { hi: ['बादाम का दूध'], es: ['leche de almendras'], fr: ['lait d\'amande'] },
     cycleDays: 10
   }),
-  P('soy_milk', 'Soy Milk', 'dairy', 3.8, 'carton', {
+  P('soy_milk', 'Soy Milk', 'dairy', 190, 'carton', {
     brands: ['Silk', 'Alpro'],
     sizes: ['1 L'],
     tags: ['vegan', 'dairy-free'],
@@ -317,7 +319,7 @@ export const CATALOG = [
     alias: { es: ['leche de soja'], fr: ['lait de soja'] },
     cycleDays: 10
   }),
-  P('oat_milk', 'Oat Milk', 'dairy', 4.6, 'carton', {
+  P('oat_milk', 'Oat Milk', 'dairy', 280, 'carton', {
     brands: ['Oatly', 'Alpro'],
     sizes: ['1 L'],
     tags: ['vegan', 'dairy-free'],
@@ -325,14 +327,14 @@ export const CATALOG = [
     alias: { es: ['leche de avena'], fr: ['lait d\'avoine'] },
     cycleDays: 10
   }),
-  P('butter', 'Butter', 'dairy', 4.1, 'pack', {
+  P('butter', 'Butter', 'dairy', 265, 'pack', {
     brands: ['Amul', 'Land O\'Lakes', 'Président'],
     sizes: ['100 g', '250 g', '500 g'],
     tags: ['salted', 'unsalted'],
     alias: { hi: ['मक्खन', 'makhan'], es: ['mantequilla'], fr: ['beurre'] },
     cycleDays: 21
   }),
-  P('cheese', 'Cheese', 'dairy', 5.5, 'pack', {
+  P('cheese', 'Cheese', 'dairy', 280, 'pack', {
     brands: ['Amul', 'Kraft', 'Britannia'],
     sizes: ['200 g', '400 g'],
     tags: ['cheddar', 'mozzarella', 'sliced'],
@@ -340,7 +342,7 @@ export const CATALOG = [
     alias: { hi: ['चीज़', 'पनीर चीज़'], es: ['queso'], fr: ['fromage'] },
     cycleDays: 14
   }),
-  P('yogurt', 'Yogurt', 'dairy', 3.3, 'cup', {
+  P('yogurt', 'Yogurt', 'dairy', 60, 'cup', {
     brands: ['Danone', 'Amul', 'Chobani'],
     sizes: ['200 g', '400 g', '1 kg'],
     tags: ['plain', 'flavoured', 'probiotic'],
@@ -348,7 +350,7 @@ export const CATALOG = [
     alias: { hi: ['दही', 'dahi'], es: ['yogur'], fr: ['yaourt'] },
     cycleDays: 7
   }),
-  P('greek_yogurt', 'Greek Yogurt', 'dairy', 4.9, 'cup', {
+  P('greek_yogurt', 'Greek Yogurt', 'dairy', 140, 'cup', {
     brands: ['Chobani', 'Fage'],
     sizes: ['150 g', '500 g'],
     tags: ['high protein', 'probiotic'],
@@ -356,7 +358,7 @@ export const CATALOG = [
     alias: { es: ['yogur griego'], fr: ['yaourt grec'] },
     cycleDays: 7
   }),
-  P('paneer', 'Paneer', 'dairy', 4.4, 'pack', {
+  P('paneer', 'Paneer', 'dairy', 95, 'pack', {
     brands: ['Amul', 'Mother Dairy'],
     sizes: ['200 g', '500 g'],
     tags: ['fresh', 'high protein'],
@@ -364,7 +366,7 @@ export const CATALOG = [
     alias: { hi: ['पनीर'], es: ['queso fresco'], fr: ['paneer'] },
     cycleDays: 10
   }),
-  P('cream', 'Cream', 'dairy', 3.0, 'pack', {
+  P('cream', 'Cream', 'dairy', 75, 'pack', {
     brands: ['Amul', 'Nestlé'],
     sizes: ['200 ml', '500 ml'],
     tags: ['fresh', 'whipping'],
@@ -372,7 +374,7 @@ export const CATALOG = [
     alias: { hi: ['क्रीम', 'malai'], es: ['nata', 'crema'], fr: ['crème'] },
     cycleDays: 21
   }),
-  P('eggs', 'Eggs', 'dairy', 3.7, 'dozen', {
+  P('eggs', 'Eggs', 'dairy', 85, 'dozen', {
     brands: ['Eggland\'s Best', 'Keggs'],
     sizes: ['6 pcs', '12 pcs', '30 pcs'],
     tags: ['free-range', 'organic', 'brown'],
@@ -380,7 +382,7 @@ export const CATALOG = [
     alias: { hi: ['अंडे', 'anda', 'ande'], es: ['huevos'], fr: ['œufs', 'oeufs'] },
     cycleDays: 7
   }),
-  P('ghee', 'Ghee', 'dairy', 8.5, 'jar', {
+  P('ghee', 'Ghee', 'dairy', 650, 'jar', {
     brands: ['Amul', 'Patanjali'],
     sizes: ['500 ml', '1 L'],
     tags: ['clarified butter'],
@@ -389,7 +391,7 @@ export const CATALOG = [
   }),
 
   // -------------------------------------------------------------------- meat
-  P('chicken', 'Chicken', 'meat', 7.9, 'kg', {
+  P('chicken', 'Chicken', 'meat', 240, 'kg', {
     brands: ['Perdue', 'Licious'],
     sizes: ['500 g', '1 kg'],
     tags: ['fresh', 'halal'],
@@ -397,7 +399,7 @@ export const CATALOG = [
     alias: { hi: ['चिकन', 'murgi'], es: ['pollo'], fr: ['poulet'] },
     cycleDays: 7
   }),
-  P('chicken_breast', 'Chicken Breast', 'meat', 9.5, 'kg', {
+  P('chicken_breast', 'Chicken Breast', 'meat', 320, 'kg', {
     brands: ['Perdue', 'Licious'],
     sizes: ['500 g', '1 kg'],
     tags: ['boneless', 'high protein', 'fresh'],
@@ -405,21 +407,21 @@ export const CATALOG = [
     alias: { es: ['pechuga de pollo'], fr: ['blanc de poulet'] },
     cycleDays: 7
   }),
-  P('mutton', 'Mutton', 'meat', 14.0, 'kg', {
+  P('mutton', 'Mutton', 'meat', 800, 'kg', {
     sizes: ['500 g', '1 kg'],
     tags: ['fresh', 'halal'],
     syn: ['lamb', 'goat meat'],
     alias: { hi: ['मटन'], es: ['cordero'], fr: ['agneau'] },
     cycleDays: 14
   }),
-  P('bacon', 'Bacon', 'meat', 6.4, 'pack', {
+  P('bacon', 'Bacon', 'meat', 380, 'pack', {
     brands: ['Oscar Mayer'],
     sizes: ['200 g', '400 g'],
     tags: ['smoked'],
     alias: { es: ['tocino'], fr: ['bacon'] },
     cycleDays: 14
   }),
-  P('sausage', 'Sausages', 'meat', 5.6, 'pack', {
+  P('sausage', 'Sausages', 'meat', 250, 'pack', {
     brands: ['Johnsonville'],
     sizes: ['250 g', '500 g'],
     tags: [],
@@ -427,14 +429,14 @@ export const CATALOG = [
     alias: { es: ['salchichas'], fr: ['saucisses'] },
     cycleDays: 14
   }),
-  P('ground_beef', 'Ground Beef', 'meat', 8.8, 'kg', {
+  P('ground_beef', 'Ground Beef', 'meat', 400, 'kg', {
     sizes: ['500 g', '1 kg'],
     tags: ['fresh'],
     syn: ['minced beef', 'beef mince', 'mince'],
     alias: { es: ['carne picada'], fr: ['bœuf haché'] },
     cycleDays: 10
   }),
-  P('turkey', 'Turkey', 'meat', 11.0, 'kg', {
+  P('turkey', 'Turkey', 'meat', 700, 'kg', {
     sizes: ['1 kg', '2 kg'],
     tags: ['fresh', 'lean'],
     alias: { es: ['pavo'], fr: ['dinde'] },
@@ -443,21 +445,21 @@ export const CATALOG = [
   }),
 
   // ----------------------------------------------------------------- seafood
-  P('salmon', 'Salmon', 'seafood', 16.0, 'kg', {
+  P('salmon', 'Salmon', 'seafood', 1200, 'kg', {
     sizes: ['250 g', '500 g'],
     tags: ['fresh', 'omega-3'],
     syn: ['salmon fillet'],
     alias: { es: ['salmón'], fr: ['saumon'] },
     cycleDays: 14
   }),
-  P('shrimp', 'Shrimp', 'seafood', 13.5, 'kg', {
+  P('shrimp', 'Shrimp', 'seafood', 700, 'kg', {
     sizes: ['250 g', '500 g'],
     tags: ['frozen', 'peeled'],
     syn: ['prawns', 'prawn'],
     alias: { hi: ['झींगा'], es: ['camarones', 'gambas'], fr: ['crevettes'] },
     cycleDays: 21
   }),
-  P('tuna', 'Canned Tuna', 'seafood', 2.4, 'can', {
+  P('tuna', 'Canned Tuna', 'seafood', 180, 'can', {
     brands: ['John West', 'StarKist'],
     sizes: ['150 g', '185 g'],
     tags: ['canned', 'in brine', 'high protein'],
@@ -465,7 +467,7 @@ export const CATALOG = [
     alias: { es: ['atún'], fr: ['thon'] },
     cycleDays: 21
   }),
-  P('fish_fillet', 'Fish Fillet', 'seafood', 10.5, 'kg', {
+  P('fish_fillet', 'Fish Fillet', 'seafood', 450, 'kg', {
     sizes: ['400 g', '1 kg'],
     tags: ['fresh', 'boneless'],
     syn: ['fish', 'white fish'],
@@ -474,14 +476,14 @@ export const CATALOG = [
   }),
 
   // ------------------------------------------------------------------ frozen
-  P('frozen_peas', 'Frozen Peas', 'frozen', 2.2, 'pack', {
+  P('frozen_peas', 'Frozen Peas', 'frozen', 90, 'pack', {
     brands: ['Birds Eye'],
     sizes: ['500 g', '1 kg'],
     tags: ['frozen', 'vegetable'],
     alias: { es: ['guisantes congelados'], fr: ['petits pois surgelés'] },
     cycleDays: 30
   }),
-  P('ice_cream', 'Ice Cream', 'frozen', 5.9, 'tub', {
+  P('ice_cream', 'Ice Cream', 'frozen', 250, 'tub', {
     brands: ['Ben & Jerry\'s', 'Häagen-Dazs', 'Amul'],
     sizes: ['500 ml', '1 L'],
     tags: ['dessert', 'frozen'],
@@ -489,7 +491,7 @@ export const CATALOG = [
     cycleDays: 21,
     season: [4, 5, 6, 7, 8]
   }),
-  P('frozen_pizza', 'Frozen Pizza', 'frozen', 6.5, 'pcs', {
+  P('frozen_pizza', 'Frozen Pizza', 'frozen', 280, 'pcs', {
     brands: ['Dr. Oetker', 'McCain'],
     sizes: ['1 pc'],
     tags: ['frozen', 'ready meal'],
@@ -497,7 +499,7 @@ export const CATALOG = [
     alias: { es: ['pizza congelada'], fr: ['pizza surgelée'] },
     cycleDays: 21
   }),
-  P('frozen_fries', 'Frozen Fries', 'frozen', 3.8, 'pack', {
+  P('frozen_fries', 'Frozen Fries', 'frozen', 150, 'pack', {
     brands: ['McCain'],
     sizes: ['500 g', '1 kg'],
     tags: ['frozen'],
@@ -505,7 +507,7 @@ export const CATALOG = [
     alias: { es: ['papas fritas congeladas'], fr: ['frites surgelées'] },
     cycleDays: 21
   }),
-  P('frozen_berries', 'Frozen Berries', 'frozen', 5.2, 'pack', {
+  P('frozen_berries', 'Frozen Berries', 'frozen', 350, 'pack', {
     sizes: ['400 g'],
     tags: ['frozen', 'fruit'],
     alias: { es: ['bayas congeladas'], fr: ['fruits rouges surgelés'] },
@@ -513,7 +515,7 @@ export const CATALOG = [
   }),
 
   // --------------------------------------------------------------- breakfast
-  P('cereal', 'Cereal', 'breakfast', 4.7, 'box', {
+  P('cereal', 'Cereal', 'breakfast', 280, 'box', {
     brands: ['Kellogg\'s', 'Nestlé', 'General Mills'],
     sizes: ['375 g', '500 g'],
     tags: ['breakfast', 'high fibre'],
@@ -521,7 +523,7 @@ export const CATALOG = [
     alias: { es: ['cereal'], fr: ['céréales'] },
     cycleDays: 21
   }),
-  P('oats', 'Oats', 'breakfast', 3.9, 'pack', {
+  P('oats', 'Oats', 'breakfast', 190, 'pack', {
     brands: ['Quaker', 'Saffola'],
     sizes: ['500 g', '1 kg'],
     tags: ['whole grain', 'high fibre'],
@@ -529,7 +531,7 @@ export const CATALOG = [
     alias: { hi: ['ओट्स'], es: ['avena'], fr: ['flocons d\'avoine'] },
     cycleDays: 30
   }),
-  P('pancake_mix', 'Pancake Mix', 'breakfast', 4.2, 'box', {
+  P('pancake_mix', 'Pancake Mix', 'breakfast', 250, 'box', {
     brands: ['Aunt Jemima', 'Betty Crocker'],
     sizes: ['500 g'],
     tags: ['breakfast'],
@@ -537,21 +539,21 @@ export const CATALOG = [
     alias: { es: ['mezcla para panqueques'], fr: ['préparation pour crêpes'] },
     cycleDays: 45
   }),
-  P('honey', 'Honey', 'breakfast', 6.3, 'jar', {
+  P('honey', 'Honey', 'breakfast', 280, 'jar', {
     brands: ['Dabur', 'Langnese'],
     sizes: ['250 g', '500 g'],
     tags: ['natural', 'organic'],
     alias: { hi: ['शहद', 'shahad'], es: ['miel'], fr: ['miel'] },
     cycleDays: 60
   }),
-  P('peanut_butter', 'Peanut Butter', 'breakfast', 5.4, 'jar', {
+  P('peanut_butter', 'Peanut Butter', 'breakfast', 300, 'jar', {
     brands: ['Skippy', 'Jif', 'Pintola'],
     sizes: ['340 g', '500 g'],
     tags: ['crunchy', 'smooth', 'high protein'],
     alias: { es: ['mantequilla de maní'], fr: ['beurre de cacahuète'] },
     cycleDays: 30
   }),
-  P('jam', 'Jam', 'breakfast', 3.6, 'jar', {
+  P('jam', 'Jam', 'breakfast', 150, 'jar', {
     brands: ['Kissan', 'Bonne Maman'],
     sizes: ['200 g', '500 g'],
     tags: ['strawberry', 'mixed fruit'],
@@ -561,7 +563,7 @@ export const CATALOG = [
   }),
 
   // ------------------------------------------------------------------ pantry
-  P('rice', 'Rice', 'pantry', 6.8, 'bag', {
+  P('rice', 'Rice', 'pantry', 320, 'bag', {
     brands: ['India Gate', 'Daawat', 'Tilda'],
     sizes: ['1 kg', '5 kg', '10 kg'],
     tags: ['basmati', 'brown', 'long grain'],
@@ -569,7 +571,7 @@ export const CATALOG = [
     alias: { hi: ['चावल', 'chawal'], es: ['arroz'], fr: ['riz'] },
     cycleDays: 45
   }),
-  P('pasta', 'Pasta', 'pantry', 2.3, 'pack', {
+  P('pasta', 'Pasta', 'pantry', 120, 'pack', {
     brands: ['Barilla', 'De Cecco'],
     sizes: ['500 g', '1 kg'],
     tags: ['durum wheat', 'whole wheat'],
@@ -577,7 +579,7 @@ export const CATALOG = [
     alias: { es: ['pasta'], fr: ['pâtes'] },
     cycleDays: 21
   }),
-  P('flour', 'Flour', 'pantry', 3.1, 'bag', {
+  P('flour', 'Flour', 'pantry', 250, 'bag', {
     brands: ['Aashirvaad', 'Pillsbury', 'King Arthur'],
     sizes: ['1 kg', '5 kg'],
     tags: ['whole wheat', 'all purpose'],
@@ -585,35 +587,35 @@ export const CATALOG = [
     alias: { hi: ['आटा', 'atta'], es: ['harina'], fr: ['farine'] },
     cycleDays: 30
   }),
-  P('sugar', 'Sugar', 'pantry', 2.6, 'bag', {
+  P('sugar', 'Sugar', 'pantry', 90, 'bag', {
     sizes: ['1 kg', '2 kg'],
     tags: ['white', 'brown'],
     syn: ['brown sugar', 'white sugar'],
     alias: { hi: ['चीनी', 'cheeni'], es: ['azúcar'], fr: ['sucre'] },
     cycleDays: 45
   }),
-  P('salt', 'Salt', 'pantry', 1.2, 'pack', {
+  P('salt', 'Salt', 'pantry', 28, 'pack', {
     brands: ['Tata', 'Morton'],
     sizes: ['500 g', '1 kg'],
     tags: ['iodised', 'sea salt'],
     alias: { hi: ['नमक', 'namak'], es: ['sal'], fr: ['sel'] },
     cycleDays: 90
   }),
-  P('lentils', 'Lentils', 'pantry', 3.4, 'bag', {
+  P('lentils', 'Lentils', 'pantry', 160, 'bag', {
     sizes: ['500 g', '1 kg'],
     tags: ['high protein', 'organic'],
     syn: ['dal', 'daal', 'toor dal', 'red lentils'],
     alias: { hi: ['दाल', 'dal'], es: ['lentejas'], fr: ['lentilles'] },
     cycleDays: 30
   }),
-  P('chickpeas', 'Chickpeas', 'pantry', 2.8, 'can', {
+  P('chickpeas', 'Chickpeas', 'pantry', 90, 'can', {
     sizes: ['400 g', '1 kg'],
     tags: ['canned', 'high protein'],
     syn: ['garbanzo beans', 'chana'],
     alias: { hi: ['छोले', 'chana'], es: ['garbanzos'], fr: ['pois chiches'] },
     cycleDays: 30
   }),
-  P('olive_oil', 'Olive Oil', 'pantry', 9.2, 'bottle', {
+  P('olive_oil', 'Olive Oil', 'pantry', 650, 'bottle', {
     brands: ['Bertolli', 'Figaro', 'Borges'],
     sizes: ['500 ml', '1 L'],
     tags: ['extra virgin', 'organic'],
@@ -621,7 +623,7 @@ export const CATALOG = [
     alias: { es: ['aceite de oliva'], fr: ['huile d\'olive'] },
     cycleDays: 60
   }),
-  P('cooking_oil', 'Cooking Oil', 'pantry', 5.5, 'bottle', {
+  P('cooking_oil', 'Cooking Oil', 'pantry', 150, 'bottle', {
     brands: ['Fortune', 'Saffola'],
     sizes: ['1 L', '5 L'],
     tags: ['sunflower', 'refined'],
@@ -629,27 +631,27 @@ export const CATALOG = [
     alias: { hi: ['तेल', 'tel'], es: ['aceite'], fr: ['huile'] },
     cycleDays: 45
   }),
-  P('black_pepper', 'Black Pepper', 'pantry', 3.2, 'pack', {
+  P('black_pepper', 'Black Pepper', 'pantry', 120, 'pack', {
     sizes: ['50 g', '100 g'],
     tags: ['spice', 'whole', 'ground'],
     syn: ['pepper', 'peppercorns'],
     alias: { hi: ['काली मिर्च', 'kali mirch'], es: ['pimienta negra'], fr: ['poivre noir'] },
     cycleDays: 90
   }),
-  P('turmeric', 'Turmeric', 'pantry', 2.1, 'pack', {
+  P('turmeric', 'Turmeric', 'pantry', 60, 'pack', {
     sizes: ['100 g', '200 g'],
     tags: ['spice', 'organic'],
     alias: { hi: ['हल्दी', 'haldi'], es: ['cúrcuma'], fr: ['curcuma'] },
     cycleDays: 90
   }),
-  P('cumin', 'Cumin', 'pantry', 2.4, 'pack', {
+  P('cumin', 'Cumin', 'pantry', 80, 'pack', {
     sizes: ['100 g', '200 g'],
     tags: ['spice'],
     syn: ['jeera', 'cumin seeds'],
     alias: { hi: ['जीरा', 'jeera'], es: ['comino'], fr: ['cumin'] },
     cycleDays: 90
   }),
-  P('tea', 'Tea', 'pantry', 4.6, 'box', {
+  P('tea', 'Tea', 'pantry', 250, 'box', {
     brands: ['Tetley', 'Lipton', 'Taj Mahal', 'Twinings'],
     sizes: ['100 g', '250 g', '500 g'],
     tags: ['green tea', 'black tea', 'organic'],
@@ -657,7 +659,7 @@ export const CATALOG = [
     alias: { hi: ['चाय', 'chai'], es: ['té'], fr: ['thé'] },
     cycleDays: 30
   }),
-  P('coffee', 'Coffee', 'pantry', 8.4, 'pack', {
+  P('coffee', 'Coffee', 'pantry', 380, 'pack', {
     brands: ['Nescafé', 'Bru', 'Lavazza', 'Starbucks'],
     sizes: ['100 g', '200 g', '500 g'],
     tags: ['instant', 'ground', 'beans'],
@@ -665,7 +667,7 @@ export const CATALOG = [
     alias: { hi: ['कॉफ़ी'], es: ['café'], fr: ['café'] },
     cycleDays: 30
   }),
-  P('noodles', 'Instant Noodles', 'pantry', 1.1, 'pack', {
+  P('noodles', 'Instant Noodles', 'pantry', 15, 'pack', {
     brands: ['Maggi', 'Nissin', 'Top Ramen'],
     sizes: ['70 g', '280 g'],
     tags: ['instant', 'ready meal'],
@@ -673,7 +675,7 @@ export const CATALOG = [
     alias: { hi: ['नूडल्स'], es: ['fideos instantáneos'], fr: ['nouilles instantanées'] },
     cycleDays: 21
   }),
-  P('canned_tomatoes', 'Canned Tomatoes', 'pantry', 1.9, 'can', {
+  P('canned_tomatoes', 'Canned Tomatoes', 'pantry', 110, 'can', {
     brands: ['Mutti', 'Hunt\'s'],
     sizes: ['400 g'],
     tags: ['canned', 'chopped'],
@@ -681,7 +683,7 @@ export const CATALOG = [
     alias: { es: ['tomate en lata'], fr: ['tomates en conserve'] },
     cycleDays: 21
   }),
-  P('canned_beans', 'Canned Beans', 'pantry', 1.7, 'can', {
+  P('canned_beans', 'Canned Beans', 'pantry', 95, 'can', {
     brands: ['Heinz'],
     sizes: ['400 g'],
     tags: ['canned', 'baked beans', 'high protein'],
@@ -691,7 +693,7 @@ export const CATALOG = [
   }),
 
   // -------------------------------------------------------------- condiments
-  P('ketchup', 'Ketchup', 'condiments', 3.0, 'bottle', {
+  P('ketchup', 'Ketchup', 'condiments', 110, 'bottle', {
     brands: ['Heinz', 'Kissan'],
     sizes: ['500 g', '1 kg'],
     tags: ['tomato'],
@@ -699,7 +701,7 @@ export const CATALOG = [
     alias: { hi: ['केचप'], es: ['kétchup'], fr: ['ketchup'] },
     cycleDays: 45
   }),
-  P('mayonnaise', 'Mayonnaise', 'condiments', 3.9, 'jar', {
+  P('mayonnaise', 'Mayonnaise', 'condiments', 140, 'jar', {
     brands: ['Hellmann\'s', 'Veeba'],
     sizes: ['250 g', '500 g'],
     tags: ['eggless'],
@@ -707,14 +709,14 @@ export const CATALOG = [
     alias: { es: ['mayonesa'], fr: ['mayonnaise'] },
     cycleDays: 45
   }),
-  P('mustard', 'Mustard', 'condiments', 2.7, 'jar', {
+  P('mustard', 'Mustard', 'condiments', 180, 'jar', {
     brands: ['French\'s', 'Maille'],
     sizes: ['200 g'],
     tags: ['dijon'],
     alias: { es: ['mostaza'], fr: ['moutarde'] },
     cycleDays: 60
   }),
-  P('soy_sauce', 'Soy Sauce', 'condiments', 3.3, 'bottle', {
+  P('soy_sauce', 'Soy Sauce', 'condiments', 120, 'bottle', {
     brands: ['Kikkoman', 'Ching\'s'],
     sizes: ['200 ml', '500 ml'],
     tags: ['dark', 'light'],
@@ -722,7 +724,7 @@ export const CATALOG = [
     alias: { es: ['salsa de soja'], fr: ['sauce soja'] },
     cycleDays: 60
   }),
-  P('hot_sauce', 'Hot Sauce', 'condiments', 3.5, 'bottle', {
+  P('hot_sauce', 'Hot Sauce', 'condiments', 150, 'bottle', {
     brands: ['Tabasco', 'Sriracha'],
     sizes: ['150 ml', '250 ml'],
     tags: ['spicy'],
@@ -730,14 +732,14 @@ export const CATALOG = [
     alias: { es: ['salsa picante'], fr: ['sauce piquante'] },
     cycleDays: 60
   }),
-  P('vinegar', 'Vinegar', 'condiments', 2.2, 'bottle', {
+  P('vinegar', 'Vinegar', 'condiments', 70, 'bottle', {
     sizes: ['500 ml'],
     tags: ['white', 'apple cider'],
     syn: ['apple cider vinegar', 'white vinegar'],
     alias: { hi: ['सिरका'], es: ['vinagre'], fr: ['vinaigre'] },
     cycleDays: 90
   }),
-  P('pickle', 'Pickle', 'condiments', 3.8, 'jar', {
+  P('pickle', 'Pickle', 'condiments', 120, 'jar', {
     brands: ['Mother\'s Recipe', 'Priya'],
     sizes: ['300 g', '500 g'],
     tags: ['spicy', 'mango'],
@@ -747,7 +749,7 @@ export const CATALOG = [
   }),
 
   // ------------------------------------------------------------------ snacks
-  P('chips', 'Potato Chips', 'snacks', 2.9, 'pack', {
+  P('chips', 'Potato Chips', 'snacks', 40, 'pack', {
     brands: ['Lay\'s', 'Pringles', 'Bingo'],
     sizes: ['52 g', '90 g', '150 g'],
     tags: ['salted', 'spicy'],
@@ -755,7 +757,7 @@ export const CATALOG = [
     alias: { hi: ['चिप्स'], es: ['papas fritas'], fr: ['chips'] },
     cycleDays: 10
   }),
-  P('cookies', 'Cookies', 'snacks', 3.2, 'pack', {
+  P('cookies', 'Cookies', 'snacks', 60, 'pack', {
     brands: ['Oreo', 'Britannia', 'Chips Ahoy'],
     sizes: ['150 g', '300 g'],
     tags: ['chocolate', 'butter'],
@@ -763,7 +765,7 @@ export const CATALOG = [
     alias: { hi: ['बिस्किट'], es: ['galletas'], fr: ['biscuits'] },
     cycleDays: 14
   }),
-  P('chocolate', 'Chocolate', 'snacks', 2.5, 'bar', {
+  P('chocolate', 'Chocolate', 'snacks', 90, 'bar', {
     brands: ['Cadbury', 'Lindt', 'Hershey\'s', 'Nestlé'],
     sizes: ['50 g', '100 g', '200 g'],
     tags: ['dark', 'milk', 'sugar-free'],
@@ -771,14 +773,14 @@ export const CATALOG = [
     alias: { hi: ['चॉकलेट'], es: ['chocolate'], fr: ['chocolat'] },
     cycleDays: 10
   }),
-  P('popcorn', 'Popcorn', 'snacks', 2.8, 'pack', {
+  P('popcorn', 'Popcorn', 'snacks', 80, 'pack', {
     brands: ['Act II', 'Pop Secret'],
     sizes: ['100 g', '250 g'],
     tags: ['microwave', 'butter'],
     alias: { es: ['palomitas'], fr: ['pop-corn'] },
     cycleDays: 21
   }),
-  P('nuts', 'Mixed Nuts', 'snacks', 7.4, 'pack', {
+  P('nuts', 'Mixed Nuts', 'snacks', 450, 'pack', {
     brands: ['Happilo', 'Planters'],
     sizes: ['200 g', '500 g'],
     tags: ['roasted', 'unsalted', 'high protein'],
@@ -786,7 +788,7 @@ export const CATALOG = [
     alias: { hi: ['मेवे', 'badam'], es: ['frutos secos'], fr: ['fruits secs'] },
     cycleDays: 30
   }),
-  P('granola_bar', 'Granola Bars', 'snacks', 4.3, 'pack', {
+  P('granola_bar', 'Granola Bars', 'snacks', 200, 'pack', {
     brands: ['Nature Valley', 'Yoga Bar'],
     sizes: ['6 pcs', '12 pcs'],
     tags: ['high fibre', 'breakfast'],
@@ -794,7 +796,7 @@ export const CATALOG = [
     alias: { es: ['barritas de cereal'], fr: ['barres de céréales'] },
     cycleDays: 21
   }),
-  P('crackers', 'Crackers', 'snacks', 2.6, 'pack', {
+  P('crackers', 'Crackers', 'snacks', 50, 'pack', {
     brands: ['Ritz', 'Monaco'],
     sizes: ['150 g', '300 g'],
     tags: ['salted'],
@@ -804,7 +806,7 @@ export const CATALOG = [
   }),
 
   // --------------------------------------------------------------- beverages
-  P('water', 'Bottled Water', 'beverages', 0.9, 'bottle', {
+  P('water', 'Bottled Water', 'beverages', 20, 'bottle', {
     brands: ['Bisleri', 'Aquafina', 'Evian'],
     sizes: ['500 ml', '1 L', '2 L'],
     tags: ['mineral', 'still'],
@@ -812,7 +814,7 @@ export const CATALOG = [
     alias: { hi: ['पानी', 'paani'], es: ['agua'], fr: ['eau'] },
     cycleDays: 5
   }),
-  P('sparkling_water', 'Sparkling Water', 'beverages', 1.6, 'bottle', {
+  P('sparkling_water', 'Sparkling Water', 'beverages', 80, 'bottle', {
     brands: ['Perrier', 'San Pellegrino'],
     sizes: ['500 ml', '1 L'],
     tags: ['carbonated', 'sugar-free'],
@@ -820,7 +822,7 @@ export const CATALOG = [
     alias: { es: ['agua con gas'], fr: ['eau gazeuse'] },
     cycleDays: 14
   }),
-  P('orange_juice', 'Orange Juice', 'beverages', 4.1, 'carton', {
+  P('orange_juice', 'Orange Juice', 'beverages', 130, 'carton', {
     brands: ['Tropicana', 'Real', 'Minute Maid'],
     sizes: ['1 L'],
     tags: ['no added sugar', 'fresh'],
@@ -828,14 +830,14 @@ export const CATALOG = [
     alias: { es: ['zumo de naranja'], fr: ['jus d\'orange'] },
     cycleDays: 7
   }),
-  P('apple_juice', 'Apple Juice', 'beverages', 3.8, 'carton', {
+  P('apple_juice', 'Apple Juice', 'beverages', 120, 'carton', {
     brands: ['Tropicana', 'Real'],
     sizes: ['1 L'],
     tags: ['no added sugar'],
     alias: { es: ['zumo de manzana'], fr: ['jus de pomme'] },
     cycleDays: 10
   }),
-  P('cola', 'Cola', 'beverages', 1.8, 'bottle', {
+  P('cola', 'Cola', 'beverages', 60, 'bottle', {
     brands: ['Coca-Cola', 'Pepsi', 'Thums Up'],
     sizes: ['500 ml', '1.25 L', '2 L'],
     tags: ['carbonated', 'diet', 'zero sugar'],
@@ -843,28 +845,28 @@ export const CATALOG = [
     alias: { hi: ['कोल्ड ड्रिंक'], es: ['refresco', 'coca cola'], fr: ['coca', 'soda'] },
     cycleDays: 10
   }),
-  P('energy_drink', 'Energy Drink', 'beverages', 2.7, 'can', {
+  P('energy_drink', 'Energy Drink', 'beverages', 110, 'can', {
     brands: ['Red Bull', 'Monster', 'Sting'],
     sizes: ['250 ml', '500 ml'],
     tags: ['caffeine', 'sugar-free'],
     alias: { es: ['bebida energética'], fr: ['boisson énergisante'] },
     cycleDays: 14
   }),
-  P('beer', 'Beer', 'beverages', 9.5, 'pack', {
+  P('beer', 'Beer', 'beverages', 600, 'pack', {
     brands: ['Heineken', 'Corona', 'Kingfisher'],
     sizes: ['6 pcs', '12 pcs'],
     tags: ['lager', 'alcohol'],
     alias: { es: ['cerveza'], fr: ['bière'] },
     cycleDays: 14
   }),
-  P('wine', 'Wine', 'beverages', 14.0, 'bottle', {
+  P('wine', 'Wine', 'beverages', 900, 'bottle', {
     brands: ['Jacob\'s Creek', 'Sula'],
     sizes: ['750 ml'],
     tags: ['red', 'white', 'alcohol'],
     alias: { es: ['vino'], fr: ['vin'] },
     cycleDays: 30
   }),
-  P('coconut_water', 'Coconut Water', 'beverages', 2.4, 'carton', {
+  P('coconut_water', 'Coconut Water', 'beverages', 80, 'carton', {
     brands: ['Vita Coco', 'Real Activ'],
     sizes: ['330 ml', '1 L'],
     tags: ['natural', 'no added sugar'],
@@ -874,7 +876,7 @@ export const CATALOG = [
   }),
 
   // --------------------------------------------------------------- household
-  P('toilet_paper', 'Toilet Paper', 'household', 7.2, 'pack', {
+  P('toilet_paper', 'Toilet Paper', 'household', 220, 'pack', {
     brands: ['Charmin', 'Origami'],
     sizes: ['4 rolls', '8 rolls', '12 rolls'],
     tags: ['2-ply', '3-ply'],
@@ -882,7 +884,7 @@ export const CATALOG = [
     alias: { es: ['papel higiénico'], fr: ['papier toilette'] },
     cycleDays: 30
   }),
-  P('paper_towels', 'Paper Towels', 'household', 5.4, 'pack', {
+  P('paper_towels', 'Paper Towels', 'household', 180, 'pack', {
     brands: ['Bounty'],
     sizes: ['2 rolls', '6 rolls'],
     tags: ['absorbent'],
@@ -890,7 +892,7 @@ export const CATALOG = [
     alias: { es: ['papel de cocina'], fr: ['essuie-tout'] },
     cycleDays: 30
   }),
-  P('dish_soap', 'Dish Soap', 'household', 3.4, 'bottle', {
+  P('dish_soap', 'Dish Soap', 'household', 110, 'bottle', {
     brands: ['Vim', 'Fairy', 'Dawn'],
     sizes: ['500 ml', '1 L'],
     tags: ['lemon', 'antibacterial'],
@@ -898,7 +900,7 @@ export const CATALOG = [
     alias: { es: ['lavavajillas'], fr: ['liquide vaisselle'] },
     cycleDays: 30
   }),
-  P('detergent', 'Laundry Detergent', 'household', 11.5, 'pack', {
+  P('detergent', 'Laundry Detergent', 'household', 350, 'pack', {
     brands: ['Ariel', 'Tide', 'Surf Excel'],
     sizes: ['1 kg', '2 kg', '4 kg'],
     tags: ['powder', 'liquid'],
@@ -906,7 +908,7 @@ export const CATALOG = [
     alias: { hi: ['डिटर्जेंट', 'surf'], es: ['detergente'], fr: ['lessive'] },
     cycleDays: 45
   }),
-  P('trash_bags', 'Trash Bags', 'household', 4.8, 'pack', {
+  P('trash_bags', 'Trash Bags', 'household', 150, 'pack', {
     brands: ['Glad', 'Hefty'],
     sizes: ['30 pcs', '60 pcs'],
     tags: ['biodegradable'],
@@ -914,14 +916,14 @@ export const CATALOG = [
     alias: { es: ['bolsas de basura'], fr: ['sacs poubelle'] },
     cycleDays: 45
   }),
-  P('foil', 'Aluminium Foil', 'household', 3.6, 'roll', {
+  P('foil', 'Aluminium Foil', 'household', 120, 'roll', {
     sizes: ['10 m', '25 m'],
     tags: [],
     syn: ['aluminum foil', 'tin foil', 'silver foil'],
     alias: { es: ['papel de aluminio'], fr: ['papier aluminium'] },
     cycleDays: 90
   }),
-  P('sponges', 'Sponges', 'household', 2.4, 'pack', {
+  P('sponges', 'Sponges', 'household', 60, 'pack', {
     brands: ['Scotch-Brite'],
     sizes: ['3 pcs', '6 pcs'],
     tags: ['scrub'],
@@ -929,7 +931,7 @@ export const CATALOG = [
     alias: { es: ['esponjas'], fr: ['éponges'] },
     cycleDays: 45
   }),
-  P('cleaning_spray', 'Cleaning Spray', 'household', 4.2, 'bottle', {
+  P('cleaning_spray', 'Cleaning Spray', 'household', 180, 'bottle', {
     brands: ['Lysol', 'Dettol', 'Mr. Muscle'],
     sizes: ['500 ml'],
     tags: ['disinfectant', 'antibacterial'],
@@ -937,7 +939,7 @@ export const CATALOG = [
     alias: { es: ['limpiador multiusos'], fr: ['nettoyant multi-usage'] },
     cycleDays: 60
   }),
-  P('light_bulbs', 'Light Bulbs', 'household', 6.0, 'pack', {
+  P('light_bulbs', 'Light Bulbs', 'household', 200, 'pack', {
     brands: ['Philips', 'Syska'],
     sizes: ['2 pcs', '4 pcs'],
     tags: ['LED', 'warm white'],
@@ -947,35 +949,35 @@ export const CATALOG = [
   }),
 
   // ----------------------------------------------------------- personal care
-  P('toothpaste', 'Toothpaste', 'personal_care', 3.5, 'tube', {
+  P('toothpaste', 'Toothpaste', 'personal_care', 95, 'tube', {
     brands: ['Colgate', 'Sensodyne', 'Crest', 'Pepsodent'],
     sizes: ['75 ml', '100 ml', '150 ml'],
     tags: ['whitening', 'sensitive', 'fluoride'],
     alias: { hi: ['टूथपेस्ट', 'manjan'], es: ['pasta de dientes'], fr: ['dentifrice'] },
     cycleDays: 45
   }),
-  P('toothbrush', 'Toothbrush', 'personal_care', 2.8, 'pcs', {
+  P('toothbrush', 'Toothbrush', 'personal_care', 45, 'pcs', {
     brands: ['Oral-B', 'Colgate'],
     sizes: ['1 pc', '3 pcs'],
     tags: ['soft', 'medium'],
     alias: { hi: ['ब्रश'], es: ['cepillo de dientes'], fr: ['brosse à dents'] },
     cycleDays: 90
   }),
-  P('shampoo', 'Shampoo', 'personal_care', 6.9, 'bottle', {
+  P('shampoo', 'Shampoo', 'personal_care', 280, 'bottle', {
     brands: ['Head & Shoulders', 'Dove', 'Pantene', 'L\'Oréal'],
     sizes: ['200 ml', '400 ml', '650 ml'],
     tags: ['anti-dandruff', 'sulphate-free'],
     alias: { hi: ['शैम्पू'], es: ['champú'], fr: ['shampooing'] },
     cycleDays: 45
   }),
-  P('conditioner', 'Conditioner', 'personal_care', 6.4, 'bottle', {
+  P('conditioner', 'Conditioner', 'personal_care', 280, 'bottle', {
     brands: ['Dove', 'Tresemme'],
     sizes: ['200 ml', '400 ml'],
     tags: ['sulphate-free'],
     alias: { es: ['acondicionador'], fr: ['après-shampooing'] },
     cycleDays: 60
   }),
-  P('soap', 'Soap', 'personal_care', 1.9, 'bar', {
+  P('soap', 'Soap', 'personal_care', 120, 'bar', {
     brands: ['Dove', 'Lux', 'Dettol'],
     sizes: ['3 pcs', '4 pcs'],
     tags: ['moisturising', 'antibacterial'],
@@ -983,7 +985,7 @@ export const CATALOG = [
     alias: { hi: ['साबुन', 'sabun'], es: ['jabón'], fr: ['savon'] },
     cycleDays: 30
   }),
-  P('body_wash', 'Body Wash', 'personal_care', 5.8, 'bottle', {
+  P('body_wash', 'Body Wash', 'personal_care', 250, 'bottle', {
     brands: ['Nivea', 'Dove'],
     sizes: ['250 ml', '500 ml'],
     tags: ['moisturising'],
@@ -991,7 +993,7 @@ export const CATALOG = [
     alias: { es: ['gel de ducha'], fr: ['gel douche'] },
     cycleDays: 45
   }),
-  P('deodorant', 'Deodorant', 'personal_care', 4.6, 'bottle', {
+  P('deodorant', 'Deodorant', 'personal_care', 220, 'bottle', {
     brands: ['Nivea', 'Axe', 'Rexona'],
     sizes: ['150 ml'],
     tags: ['roll-on', 'spray'],
@@ -999,7 +1001,7 @@ export const CATALOG = [
     alias: { es: ['desodorante'], fr: ['déodorant'] },
     cycleDays: 45
   }),
-  P('razor', 'Razors', 'personal_care', 8.2, 'pack', {
+  P('razor', 'Razors', 'personal_care', 300, 'pack', {
     brands: ['Gillette', 'Schick'],
     sizes: ['3 pcs', '5 pcs'],
     tags: [],
@@ -1007,7 +1009,7 @@ export const CATALOG = [
     alias: { es: ['maquinillas de afeitar'], fr: ['rasoirs'] },
     cycleDays: 60
   }),
-  P('hand_sanitizer', 'Hand Sanitizer', 'personal_care', 3.1, 'bottle', {
+  P('hand_sanitizer', 'Hand Sanitizer', 'personal_care', 90, 'bottle', {
     brands: ['Dettol', 'Purell'],
     sizes: ['100 ml', '500 ml'],
     tags: ['antibacterial', 'alcohol-based'],
@@ -1015,7 +1017,7 @@ export const CATALOG = [
     alias: { es: ['gel desinfectante'], fr: ['gel hydroalcoolique'] },
     cycleDays: 60
   }),
-  P('face_wash', 'Face Wash', 'personal_care', 5.2, 'tube', {
+  P('face_wash', 'Face Wash', 'personal_care', 200, 'tube', {
     brands: ['Cetaphil', 'Himalaya', 'Neutrogena'],
     sizes: ['100 ml', '150 ml'],
     tags: ['oil-free', 'gentle'],
@@ -1023,7 +1025,7 @@ export const CATALOG = [
     alias: { es: ['limpiador facial'], fr: ['nettoyant visage'] },
     cycleDays: 45
   }),
-  P('sunscreen', 'Sunscreen', 'personal_care', 9.8, 'tube', {
+  P('sunscreen', 'Sunscreen', 'personal_care', 450, 'tube', {
     brands: ['Neutrogena', 'La Roche-Posay'],
     sizes: ['50 ml', '100 ml'],
     tags: ['SPF 50', 'water resistant'],
@@ -1032,7 +1034,7 @@ export const CATALOG = [
     cycleDays: 60,
     season: [4, 5, 6, 7, 8]
   }),
-  P('tissues', 'Tissues', 'personal_care', 2.9, 'box', {
+  P('tissues', 'Tissues', 'personal_care', 90, 'box', {
     brands: ['Kleenex', 'Origami'],
     sizes: ['100 pcs', '200 pcs'],
     tags: ['soft'],
@@ -1042,7 +1044,7 @@ export const CATALOG = [
   }),
 
   // -------------------------------------------------------------------- baby
-  P('diapers', 'Diapers', 'baby', 18.5, 'pack', {
+  P('diapers', 'Diapers', 'baby', 750, 'pack', {
     brands: ['Pampers', 'Huggies', 'MamyPoko'],
     sizes: ['S 60 pcs', 'M 56 pcs', 'L 48 pcs'],
     tags: ['overnight', 'sensitive'],
@@ -1050,7 +1052,7 @@ export const CATALOG = [
     alias: { es: ['pañales'], fr: ['couches'] },
     cycleDays: 21
   }),
-  P('baby_wipes', 'Baby Wipes', 'baby', 4.4, 'pack', {
+  P('baby_wipes', 'Baby Wipes', 'baby', 200, 'pack', {
     brands: ['Pampers', 'Himalaya'],
     sizes: ['72 pcs', '160 pcs'],
     tags: ['fragrance-free', 'sensitive'],
@@ -1058,7 +1060,7 @@ export const CATALOG = [
     alias: { es: ['toallitas'], fr: ['lingettes'] },
     cycleDays: 21
   }),
-  P('baby_formula', 'Baby Formula', 'baby', 24.0, 'tin', {
+  P('baby_formula', 'Baby Formula', 'baby', 850, 'tin', {
     brands: ['Enfamil', 'Similac', 'Nestlé NAN'],
     sizes: ['400 g', '800 g'],
     tags: ['stage 1', 'stage 2'],
@@ -1066,7 +1068,7 @@ export const CATALOG = [
     alias: { es: ['leche de fórmula'], fr: ['lait infantile'] },
     cycleDays: 21
   }),
-  P('baby_food', 'Baby Food', 'baby', 3.2, 'jar', {
+  P('baby_food', 'Baby Food', 'baby', 150, 'jar', {
     brands: ['Gerber', 'Cerelac'],
     sizes: ['120 g', '300 g'],
     tags: ['organic', 'no added sugar'],
@@ -1075,28 +1077,28 @@ export const CATALOG = [
   }),
 
   // --------------------------------------------------------------------- pet
-  P('dog_food', 'Dog Food', 'pet', 22.0, 'bag', {
+  P('dog_food', 'Dog Food', 'pet', 900, 'bag', {
     brands: ['Pedigree', 'Royal Canin'],
     sizes: ['1.2 kg', '3 kg', '10 kg'],
     tags: ['dry', 'adult', 'puppy'],
     alias: { es: ['comida para perros'], fr: ['nourriture pour chien'] },
     cycleDays: 30
   }),
-  P('cat_food', 'Cat Food', 'pet', 19.0, 'bag', {
+  P('cat_food', 'Cat Food', 'pet', 750, 'bag', {
     brands: ['Whiskas', 'Royal Canin'],
     sizes: ['1 kg', '3 kg'],
     tags: ['dry', 'wet'],
     alias: { es: ['comida para gatos'], fr: ['nourriture pour chat'] },
     cycleDays: 30
   }),
-  P('cat_litter', 'Cat Litter', 'pet', 12.5, 'bag', {
+  P('cat_litter', 'Cat Litter', 'pet', 500, 'bag', {
     brands: ['Tidy Cats'],
     sizes: ['5 kg', '10 kg'],
     tags: ['clumping', 'odour control'],
     alias: { es: ['arena para gatos'], fr: ['litière pour chat'] },
     cycleDays: 30
   }),
-  P('pet_treats', 'Pet Treats', 'pet', 6.8, 'pack', {
+  P('pet_treats', 'Pet Treats', 'pet', 250, 'pack', {
     brands: ['Pedigree', 'Dentastix'],
     sizes: ['100 g', '250 g'],
     tags: ['dental'],

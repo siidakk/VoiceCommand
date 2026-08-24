@@ -24,16 +24,32 @@ export const LANGUAGES = Object.values(LOCALES).map((l) => ({
 export const DEFAULT_LANG = 'en';
 
 /**
- * Static conversion rates from the catalog's USD base.
+ * The catalog's base currency.
+ *
+ * Every price in shared/data/catalog.js is an Indian rupee amount, because the
+ * catalog models an Indian grocery store. That is why the display currency does
+ * not follow the interface language: switching to Français changes the words,
+ * not the shop, so the prices stay in rupees.
+ */
+export const BASE_CURRENCY = 'INR';
+
+/**
+ * Static conversion rates *from* the INR base.
  *
  * Deliberately not a live FX call: the assignment asks for a shopping
  * assistant, not a currency tracker, and a hard-coded table keeps the project
  * dependency-free and deterministic in tests. Swap for a rates API if the
  * numbers ever need to be real.
+ *
+ * These exist so a spoken price in another currency ("under five dollars")
+ * can be compared against a rupee catalog, not so the UI can re-denominate.
  */
-const USD_RATES = { USD: 1, INR: 83, EUR: 0.92 };
+const RATES_FROM_BASE = { INR: 1, USD: 1 / 83, EUR: 1 / 90, GBP: 1 / 105 };
 
-const CURRENCY_LOCALE = { USD: 'en-US', INR: 'en-IN', EUR: 'de-DE' };
+const CURRENCY_LOCALE = { INR: 'en-IN', USD: 'en-US', EUR: 'de-DE', GBP: 'en-GB' };
+
+/** Currencies rendered without minor units, because the coins are noise. */
+const WHOLE_UNIT_CURRENCIES = new Set(['INR']);
 
 /** Normalise anything to a supported language code. */
 export function resolveLang(lang) {
@@ -65,27 +81,33 @@ export function translator(lang) {
   return fn;
 }
 
-/** Currency code a language defaults to. */
+/**
+ * Currency a language displays prices in.
+ *
+ * Every locale returns the base currency today, because all four describe the
+ * same Indian shop. The indirection is kept rather than hard-coding INR at the
+ * call sites so that adding a locale with its own storefront stays a one-line
+ * change in that locale file.
+ */
 export function currencyFor(lang) {
-  return LOCALES[resolveLang(lang)].currency;
+  return LOCALES[resolveLang(lang)].currency || BASE_CURRENCY;
 }
 
 /**
- * Render a USD amount in the language's currency.
+ * Render a catalog amount as money.
  *
- * @param {number} usd    amount in catalog base currency
- * @param {string} lang   language code
- * @param {string} [currency] override the language default
+ * @param {number} amount     price in the base currency (INR)
+ * @param {string} lang       language code, used for digit grouping
+ * @param {string} [currency] render in this currency instead of the locale's
  */
-export function formatCurrency(usd, lang, currency) {
+export function formatCurrency(amount, lang, currency) {
   const code = currency || currencyFor(lang);
-  const rate = USD_RATES[code] ?? 1;
-  const value = usd * rate;
-  // Whole rupees read better than paise for grocery prices.
-  const digits = code === 'INR' ? 0 : 2;
+  const rate = RATES_FROM_BASE[code] ?? 1;
+  const value = amount * rate;
+  const digits = WHOLE_UNIT_CURRENCIES.has(code) ? 0 : 2;
 
   try {
-    return new Intl.NumberFormat(CURRENCY_LOCALE[code] || 'en-US', {
+    return new Intl.NumberFormat(CURRENCY_LOCALE[code] || 'en-IN', {
       style: 'currency',
       currency: code,
       minimumFractionDigits: digits,
@@ -98,10 +120,19 @@ export function formatCurrency(usd, lang, currency) {
   }
 }
 
-/** Convert a spoken amount in the user's currency back to catalog USD. */
-export function toUsd(amount, lang, currency) {
+/**
+ * Convert a spoken amount into the catalog's base currency.
+ *
+ * This is what makes "find toothpaste under five dollars" comparable against a
+ * rupee-denominated catalog instead of silently comparing different units.
+ *
+ * @param {number} amount     the number the user said
+ * @param {string} lang       language code, for the assumed currency
+ * @param {string} [currency] currency the user actually named, if any
+ */
+export function toBaseCurrency(amount, lang, currency) {
   const code = currency || currencyFor(lang);
-  const rate = USD_RATES[code] ?? 1;
+  const rate = RATES_FROM_BASE[code] ?? 1;
   return amount / rate;
 }
 

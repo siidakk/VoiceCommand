@@ -4,7 +4,7 @@ A voice-driven shopping list manager with natural-language understanding, multil
 input and smart suggestions.
 
 Speak naturally — *"add two litres of milk"*, *"I don't need bread"*,
-*"find toothpaste under five dollars"* — and the list updates, categorises itself
+*"find toothpaste under 200 rupees"* — and the list updates, categorises itself
 into supermarket aisles, and tells you what you are probably running low on.
 
 **Built with zero runtime dependencies.** No frameworks, no build step, no npm install.
@@ -74,7 +74,7 @@ The NLP understands varied phrasing for the same intent. All of these add banana
 
 | Requirement | How it works | Code |
 |---|---|---|
-| **Product recommendations** | Learns *your* repurchase interval from purchase history — the median gap between your own purchases — and flags an item when 80% of that interval has elapsed | [`shared/engine/recommender.js`](shared/engine/recommender.js) |
+| **Product recommendations** | Learns *your* repurchase interval from purchase history — the median gap between your own purchases — and flags an item when 80% of that interval has elapsed. Surfaced **proactively**, as *"It looks like you're running low on Bread"*, with one tap to add | [`shared/engine/recommender.js`](shared/engine/recommender.js) |
 | **Seasonal recommendations** | Month-based seasonality plus a promotions table, ranked so in-season *and* discounted items lead | [`shared/data/seasonal.js`](shared/data/seasonal.js) |
 | **Substitutes** | A curated substitution graph with reasons (dairy-free, cheaper, healthier, vegan…), offered automatically when an item is out of stock | [`shared/data/substitutes.js`](shared/data/substitutes.js) |
 
@@ -95,11 +95,17 @@ noise — the reason is what makes it actionable.
 | Requirement | Example |
 |---|---|
 | **Item search** | *"find me organic apples"*, *"show me Colgate toothpaste"*, *"find 1 litre milk"* |
-| **Price range filtering** | *"find toothpaste under $5"*, *"milk between 2 and 5 dollars"*, *"shampoo under 500 rupees"* |
+| **Price range filtering** | *"find toothpaste under 200 rupees"*, *"milk between 50 and 100"*, *"find toothpaste under 5 dollars"* |
 
-Spoken prices are converted from the spoken currency into the catalog's base
-currency before comparison, so "under 500 rupees" and "under 5 dollars" are both
-meaningful rather than silently comparing different units.
+The catalog is an Indian grocery store, priced in rupees — and priced
+*realistically*, not converted: milk is ₹66 a litre, not $3.49 × 83. Prices stay
+in rupees in every language, because changing the interface language changes the
+words, not the shop.
+
+A spoken price in another currency is converted into rupees before comparison, so
+"under 5 dollars" becomes "under ₹415" and is compared against real shelf prices
+instead of silently comparing different units. A bare number ("under 200") is
+read as rupees.
 
 ### 5. UI/UX
 
@@ -107,9 +113,12 @@ meaningful rather than silently comparing different units.
 - **Real-time visual feedback** — live interim transcript while you speak, a
   confidence reading, action chips (`+ Milk`, `− Bread`), and the affected row
   flashes so you can see *which* item a command changed.
-- **Mobile / voice-only** — thumb-reachable mic dock, 58px tap target, single
-  column under 900px, safe-area insets for notched phones, spoken confirmations
-  for every action, and a screen-reader live region independent of the TTS setting.
+- **Voice-only** — every action is confirmed aloud, and *"what's on my list"*
+  reads the items back ("3 items: 3 kg Apples, Bread, 2 L Milk"), not just a
+  count. A list you cannot hear is not a voice interface.
+- **Mobile-first** — thumb-reachable mic dock, 60px tap target, single column
+  under 900px, safe-area insets for notched phones, and a screen-reader live
+  region that works independently of the voice-reply setting.
 - **Loading states** — mic states (idle → listening → processing), `aria-busy`
   on panels during work, and a sync indicator.
 - **Error handling** — every failure mode has its own message: microphone blocked,
@@ -186,7 +195,7 @@ lists tappable examples in the current language.
 | Add | "add milk" · "I need apples and bread" · "add 2 bottles of water" |
 | Quantity | "add two litres of milk" · "change milk to 3" · "buy a dozen eggs" |
 | Remove | "remove milk from my list" · "I don't need bread" · "clear my list" |
-| Search | "find toothpaste under 5 dollars" · "find me organic apples" |
+| Search | "find toothpaste under 200 rupees" · "find me organic apples" |
 | Suggest | "what should I buy" · "what's on sale" |
 | Substitute | "what can I use instead of milk" |
 | Review | "what's on my list" · "I got the eggs" |
@@ -262,6 +271,13 @@ product names.
 the worse error. `"panir"` adds Paneer *and* surfaces a one-tap correction chip.
 Either outcome costs the user one tap; silently doing nothing costs them a
 forgotten item.
+
+**Why write Indian prices instead of converting dollar ones?** Because
+`$3.49 × 83 = ₹290` for a litre of milk, and the real price is about ₹66. A
+converted catalog would look plausible in code and absurd on screen, and every
+price-range search would return the wrong thing. The rates that remain exist to
+interpret spoken input ("under five dollars" → ₹415), not to re-denominate the
+shop.
 
 **Why a JSON file instead of a database?** A shopping list is small, and the
 guidelines ask for minimal dependencies. Writes are atomic (temp file + rename) so

@@ -429,7 +429,11 @@ function compileTemplate(template) {
       if (token === '{n}') return '(?<n>\\d+(?:\\.\\d+)?)';
       return escapeRegex(token);
     })
-    .join('\\s+');
+    // Words may be joined by a hyphen as well as a space. French inverts and
+    // hyphenates its questions ("que dois-je acheter"), and normalisation
+    // keeps hyphens because they are meaningful inside compounds like
+    // "sugar-free" — so the separator has to accept both.
+    .join('[\\s-]+');
 
   return new RegExp(`^\\s*${source}\\s*$`, 'iu');
 }

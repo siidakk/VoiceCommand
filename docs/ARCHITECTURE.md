@@ -130,7 +130,7 @@ free-text item, because the user must be able to add anything.
 | `list-manager.js` | Pure state transitions. Every operation returns a new state; nothing mutates. This is what lets the client keep an undo stack by holding old references. |
 | `categorizer.js` | Catalog lookup → strong qualifiers (`dog`, `baby`) → keyword table → nearest-neighbour vote. Returns `other` rather than guessing when confidence is low. |
 | `recommender.js` | Five ranked signals: learned repurchase due, frequently bought, pairings, seasonal/sale, cold-start staples. |
-| `search.js` | Applies structured filters, converting spoken currency to the catalog base first. Relaxes an unsatisfiable tag filter rather than returning nothing. |
+| `search.js` | Applies structured filters, converting a spoken currency into the rupee base first. Relaxes an unsatisfiable tag filter rather than returning nothing. |
 | `executor.js` | The single dispatch point from parsed intent to state change plus spoken reply. Pure — persistence is the caller's job. |
 
 ### State shape
@@ -149,6 +149,17 @@ free-text item, because the user must be able to add anything.
 
 `history` is deliberately preserved by "clear my list" — the list is what the user
 asked to clear; the memory is what makes suggestions good.
+
+### Currency
+
+Catalog prices are Indian rupees, and are plausible Indian shelf prices rather
+than converted dollar figures — milk is ₹66 a litre, not $3.49 × 83. A mechanical
+conversion would have produced a catalog no Indian shopper would recognise.
+
+Every locale displays rupees, because all four describe the same shop. The
+multi-currency machinery exists for *input*, not output: "under five dollars" is
+converted to ₹415 so it can be compared with real prices, and the UI shows the
+converted figure so the user can see what was understood.
 
 `hydrate()` validates every field of anything read from storage, because
 `localStorage` and a JSON file are both untrusted input: they may come from an

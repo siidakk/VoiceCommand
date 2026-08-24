@@ -302,15 +302,51 @@ function doClear(state, lang, now) {
   };
 }
 
+/**
+ * Read the list back.
+ *
+ * Speaks the actual items, not just a count. "You have 4 items" is useless to
+ * someone shopping with the phone in their pocket, which is exactly the
+ * voice-only case this has to serve — so the reply enumerates what is still to
+ * be picked up, and stays quiet about what is already in the cart.
+ */
 function doReadList(state, lang) {
   const summary = list.totals(state);
   const groups = list.groupByCategory(state);
 
-  const speak = summary.total
-    ? t(lang, 'say.listSummary', { count: summary.total })
-    : t(lang, 'say.listEmpty');
+  if (!summary.total) {
+    return {
+      state,
+      response: reply(RESULT.LIST, t(lang, 'say.listEmpty'), { groups, totals: summary })
+    };
+  }
 
-  return { state, response: reply(RESULT.LIST, speak, { groups, totals: summary }) };
+  const outstanding = list.sortedByAisle(state).filter((item) => !item.bought);
+
+  // "2 Milk" reads badly; "2 litres of Milk" is what a person would say.
+  const spoken = outstanding.map((item) => {
+    const name = spokenName(item, lang);
+    if (item.quantity <= 1) return name;
+    return `${item.quantity} ${unitLabel(item.unit, item.quantity, lang)} ${name}`.replace(/\s+/g, ' ');
+  });
+
+  // Announcing "3 items" and then naming two of them sounds like a bug. When
+  // some are already in the cart, say the total and then what is left.
+  let speak;
+  if (!spoken.length) {
+    speak = t(lang, 'say.listSummary', { count: summary.total });
+  } else if (summary.bought) {
+    speak = `${t(lang, 'say.listSummary', { count: summary.total })}. ${t(lang, 'say.listRemaining', {
+      items: spoken.join(', ')
+    })}`;
+  } else {
+    speak = t(lang, 'say.listReadout', { count: summary.total, items: spoken.join(', ') });
+  }
+
+  return {
+    state,
+    response: reply(RESULT.LIST, speak, { groups, totals: summary, outstanding: spoken })
+  };
 }
 
 function doSearch(state, command, lang) {
@@ -334,15 +370,59 @@ function doSearch(state, command, lang) {
 function doSuggest(state, lang, now) {
   const suggestions = suggest(state, { now, limit: 8 });
   const inSeason = seasonal({ now, limit: 6 });
+  const lowStock = runningLow(state, lang, { now });
 
-  const speak = suggestions.length
-    ? suggestions
-        .slice(0, 3)
-        .map((entry) => localizedName(entry.id, lang))
-        .join(', ')
-    : t(lang, 'panel.noSuggestions');
+  // Lead with the repurchase prediction when there is one. It is the most
+  // useful thing the assistant knows, and it is the behaviour the brief names
+  // directly — "It looks like you're running low on bread".
+  let speak;
+  if (lowStock) {
+    speak = lowStock.message;
+    const rest = suggestions
+      .filter((entry) => !lowStock.ids.includes(entry.id))
+      .slice(0, 2)
+      .map((entry) => localizedName(entry.id, lang));
+    if (rest.length) speak = `${speak}. ${rest.join(', ')}`;
+  } else if (suggestions.length) {
+    speak = suggestions
+      .slice(0, 3)
+      .map((entry) => localizedName(entry.id, lang))
+      .join(', ');
+  } else {
+    speak = t(lang, 'panel.noSuggestions');
+  }
 
-  return { state, response: reply(RESULT.SUGGESTIONS, speak, { suggestions, seasonal: inSeason }) };
+  return {
+    state,
+    response: reply(RESULT.SUGGESTIONS, speak, { suggestions, seasonal: inSeason, runningLow: lowStock })
+  };
+}
+
+/**
+ * The "running low" alert, or null.
+ *
+ * Split out from doSuggest because the UI shows it proactively rather than
+ * waiting to be asked — a prediction the user has to request is not much of a
+ * prediction.
+ *
+ * @returns {{ ids: string[], items: {id,name}[], message: string } | null}
+ */
+export function runningLow(state, lang = 'en', options = {}) {
+  const due = suggest(state, { now: options.now, limit: 12 }).filter(
+    (entry) => entry.reason === 'runningLow'
+  );
+
+  if (!due.length) return null;
+
+  const items = due.map((entry) => ({ id: entry.id, name: localizedName(entry.id, lang) }));
+  const [first] = items;
+
+  const message =
+    items.length === 1
+      ? t(lang, 'alert.runningLow', { item: first.name })
+      : t(lang, 'alert.runningLowMore', { item: first.name, count: items.length - 1 });
+
+  return { ids: items.map((entry) => entry.id), items, message };
 }
 
 function doSubstitute(state, command, lang) {
