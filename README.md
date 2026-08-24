@@ -18,8 +18,9 @@ lists no dependencies at all.
 
 | | |
 |---|---|
-| **Application URL** | _deploy with `npm run deploy:firebase`, then paste the URL here — see [Deployment](#deployment)_ |
+| **Application URL** https://voicecommand-dc704.web.app_ |
 | **Repository** | https://github.com/siidakk/VoiceCommand |
+| **Project Console** | https://console.firebase.google.com/project/voicecommand-dc704/overview |
 
 The app is fully functional as a static page — speech recognition runs in the
 browser and the list persists locally — so **Firebase Hosting** is enough to run
