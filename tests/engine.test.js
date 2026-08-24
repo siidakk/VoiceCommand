@@ -31,6 +31,32 @@ function listWith(...specs) {
 }
 
 describe('catalog integrity', () => {
+  test('every product has variants at more than one price', () => {
+    for (const product of CATALOG) {
+      assert.ok(product.variants.length >= 1, `${product.id} has no variants`);
+      assert.ok(product.priceFrom <= product.price, `${product.id} headline is below its cheapest`);
+      assert.ok(product.priceTo >= product.price, `${product.id} headline is above its dearest`);
+
+      // The anchor variant is the declared price exactly, which is what makes
+      // every other variant a stated multiple rather than an invented number.
+      const anchor = product.variants.find((v) => v.isDefault);
+      assert.equal(anchor.price, product.price, `${product.id} anchor drifted`);
+
+      for (const variant of product.variants) {
+        assert.ok(variant.price > 0, `${product.id} variant ${variant.id} has no price`);
+      }
+    }
+  });
+
+  test('a product with several brands and sizes has several prices', () => {
+    const toothpaste = CATALOG_BY_ID.get('toothpaste');
+    const prices = new Set(toothpaste.variants.map((v) => v.price));
+    assert.ok(prices.size >= 5, 'expected a spread of toothpaste prices');
+    // Straddling $5 is what makes the example filter in the brief meaningful.
+    assert.ok(toothpaste.priceFrom < 5, 'cheapest toothpaste should be under $5');
+    assert.ok(toothpaste.priceTo > 5, 'dearest toothpaste should be over $5');
+  });
+
   test('every product id is unique and well formed', () => {
     const ids = new Set();
     for (const product of CATALOG) {
@@ -156,8 +182,49 @@ describe('list manager', () => {
     assert.equal(totals.total, 2);
     assert.equal(totals.priced, 1);
     assert.equal(totals.unpriced, 1);
-    // Milk is Rs 66 a litre; the free-text item contributes nothing.
-    assert.equal(totals.estimated, 132);
+    // Milk is $3.49 a litre; the free-text item contributes nothing.
+    assert.equal(totals.estimated, 6.98);
+  });
+
+  test('a chosen variant sets the line price, not the headline price', () => {
+    // Regression: the row renderer priced every line from the product's
+    // headline price, so two differently-priced tubes of toothpaste showed the
+    // same number while the basket total quietly disagreed.
+    const toothpaste = CATALOG_BY_ID.get('toothpaste');
+    const cheapest = toothpaste.variants[0];
+    const dearest = toothpaste.variants[toothpaste.variants.length - 1];
+
+    let state = list.createState();
+    ({ state } = list.addItem(state, { productId: 'toothpaste', name: 'Toothpaste', variantId: cheapest.id }, NOW));
+    ({ state } = list.addItem(state, { productId: 'toothpaste', name: 'Toothpaste', variantId: dearest.id }, NOW));
+
+    // Two variants of one product are two things to buy, not one merged line.
+    assert.equal(state.items.length, 2);
+    assert.equal(list.lineUnitPrice(state.items[0]), cheapest.price);
+    assert.equal(list.lineUnitPrice(state.items[1]), dearest.price);
+    assert.equal(list.totals(state).estimated, Math.round((cheapest.price + dearest.price) * 100) / 100);
+  });
+
+  test('the same variant added twice merges', () => {
+    const variant = CATALOG_BY_ID.get('toothpaste').variants[0];
+
+    let state = list.createState();
+    ({ state } = list.addItem(state, { productId: 'toothpaste', name: 'Toothpaste', variantId: variant.id }, NOW));
+    const again = list.addItem(state, { productId: 'toothpaste', name: 'Toothpaste', variantId: variant.id }, NOW);
+
+    assert.equal(again.merged, true);
+    assert.equal(again.item.quantity, 2);
+  });
+
+  test('an item with no variant falls back to the catalog price', () => {
+    const { item } = list.addItem(list.createState(), { productId: 'milk', name: 'Milk' }, NOW);
+    assert.equal(list.lineUnitPrice(item), CATALOG_BY_ID.get('milk').price);
+    assert.equal(list.itemVariantLabel(item), '');
+  });
+
+  test('a free-text item has no price at all', () => {
+    const { item } = list.addItem(list.createState(), { name: 'Rice Paper' }, NOW);
+    assert.equal(list.lineUnitPrice(item), null);
   });
 
   test('hydrate repairs arbitrary persisted junk', () => {
@@ -295,14 +362,17 @@ describe('seasonal', () => {
   });
 
   test('sale price applies the discount', () => {
-    // Olive oil is 25% off Rs 650, rounded to whole rupees.
-    assert.equal(salePrice('olive_oil'), 488);
+    // Olive oil is 25% off $9.20.
+    assert.equal(salePrice('olive_oil'), 6.9);
     assert.equal(salePrice('lettuce'), CATALOG_BY_ID.get('lettuce').price);
   });
 
-  test('sale prices are whole rupees', () => {
+  test('sale prices never carry sub-cent noise', () => {
     for (const id of Object.keys(PROMOTIONS)) {
-      assert.equal(salePrice(id) % 1, 0, id + ' sale price is not a whole rupee');
+      const price = salePrice(id);
+      // Compared via toFixed rather than `price * 100`, because that
+      // multiplication introduces the very float noise being tested for.
+      assert.equal(price, Number(price.toFixed(2)), `${id} has a fractional cent`);
     }
   });
 });
@@ -314,29 +384,46 @@ describe('search', () => {
     return search(filters, { lang });
   };
 
-  test('applies a spoken price ceiling in rupees', () => {
-    const outcome = run('find toothpaste under 200 rupees');
+  test("applies the brief's own price ceiling", () => {
+    const outcome = run('find toothpaste under 5 dollars');
+
     assert.equal(outcome.total, 1);
     assert.equal(outcome.results[0].id, 'toothpaste');
-    assert.ok(outcome.results[0].salePrice <= 200);
+    assert.equal(outcome.priceRange.max, 5);
+    // Every option it offers must actually be under $5.
+    assert.ok(outcome.results[0].variants.every((v) => v.price <= 5));
   });
 
-  test('converts a foreign currency into the rupee base', () => {
-    // The catalog is priced in rupees, so "5 dollars" has to become Rs 415
-    // before it can be compared with anything. Toothpaste is Rs 95.
-    const outcome = run('find toothpaste under 5 dollars');
-    assert.equal(outcome.priceRange.max, 415);
-    assert.ok(outcome.total >= 1);
+  test('filters variants, not just products', () => {
+    // Toothpaste spans $2.29 to $5.79, so "under $5" has to drop the dearest
+    // tubes rather than answering yes or no for toothpaste as a whole.
+    const all = run('find toothpaste');
+    const cheap = run('find toothpaste under 5 dollars');
+
+    assert.ok(all.results[0].variantCount > cheap.results[0].variantCount);
+    assert.equal(cheap.results[0].totalVariants, all.results[0].variantCount);
   });
 
-  test('a bare number is read as rupees', () => {
-    assert.equal(run('find toothpaste under 200').priceRange.max, 200);
+  test('a bare number is read as dollars', () => {
+    assert.equal(run('find toothpaste under 4').priceRange.max, 4);
+  });
+
+  test('converts a foreign currency into the dollar base', () => {
+    // 500 rupees is about $6.
+    const outcome = run('find shampoo under 500 rupees');
+    assert.ok(outcome.priceRange.max > 5 && outcome.priceRange.max < 7);
   });
 
   test('excludes items above the ceiling', () => {
-    // Rs 40 buys no shampoo, and $1 (Rs 83) does not either.
-    assert.equal(run('find shampoo under 40 rupees').total, 0);
     assert.equal(run('find shampoo under 1 dollar').total, 0);
+  });
+
+  test('filters by a specific pack size', () => {
+    // Regression: "1 litre" never matched the catalog's "1 L", so a size
+    // filter silently returned nothing.
+    const outcome = run('find 1 litre milk');
+    assert.equal(outcome.total, 1);
+    assert.ok(outcome.results[0].variants.every((v) => v.size === '1 L'));
   });
 
   test('searches a category name', () => {

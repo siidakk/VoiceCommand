@@ -14,6 +14,7 @@ import { el, render } from './dom.js';
 import { getCategory } from '../../../shared/data/categories.js';
 import { localizedName } from '../../../shared/data/catalog.js';
 import { unitLabel } from '../../../shared/nlp/units.js';
+import { itemVariantLabel } from '../../../shared/engine/list-manager.js';
 import { t, categoryLabel } from '../../../shared/i18n/index.js';
 
 /** Display name for a stored item, translated where the catalog knows how. */
@@ -31,6 +32,11 @@ function displayName(item, lang) {
 function itemMeta(item, store) {
   const lang = store.lang;
   const bits = [];
+
+  // The chosen brand and size come first: they are what distinguishes two
+  // otherwise identical lines with different prices.
+  const variant = itemVariantLabel(item);
+  if (variant) bits.push(variant);
 
   const unit = unitLabel(item.unit, item.quantity, lang);
   if (item.quantity > 1 || (unit && unit !== 'pcs')) {

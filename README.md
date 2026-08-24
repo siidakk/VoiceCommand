@@ -4,7 +4,7 @@ A voice-driven shopping list manager with natural-language understanding, multil
 input and smart suggestions.
 
 Speak naturally — *"add two litres of milk"*, *"I don't need bread"*,
-*"find toothpaste under 200 rupees"* — and the list updates, categorises itself
+*"find toothpaste under $5"* — and the list updates, categorises itself
 into supermarket aisles, and tells you what you are probably running low on.
 
 **Built with zero runtime dependencies.** No frameworks, no build step, no npm install.
@@ -18,12 +18,12 @@ lists no dependencies at all.
 
 | | |
 |---|---|
-| **Application URL** | _see [Deployment](#deployment) — the app is one settings toggle away from a live URL_ |
+| **Application URL** | _deploy with `npm run deploy:firebase`, then paste the URL here — see [Deployment](#deployment)_ |
 | **Repository** | https://github.com/siidakk/VoiceCommand |
 
-The app is fully functional as a static page (no server required), so GitHub Pages
-alone is enough to host it. Deploying the Node server additionally gives you
-cross-device list sync.
+The app is fully functional as a static page — speech recognition runs in the
+browser and the list persists locally — so **Firebase Hosting** is enough to run
+all of it. The Node server is optional and adds cross-device sync only.
 
 > **Browser support.** Speech recognition needs Chrome, Edge, or Safari.
 > Firefox has no `SpeechRecognition` implementation — the app detects this,
@@ -74,9 +74,15 @@ The NLP understands varied phrasing for the same intent. All of these add banana
 
 | Requirement | How it works | Code |
 |---|---|---|
-| **Product recommendations** | Learns *your* repurchase interval from purchase history — the median gap between your own purchases — and flags an item when 80% of that interval has elapsed. Surfaced **proactively**, as *"It looks like you're running low on Bread"*, with one tap to add | [`shared/engine/recommender.js`](shared/engine/recommender.js) |
+| **Product recommendations** | Learns *your* repurchase interval from purchase history — the median gap between your own purchases — and flags an item at 80% of that interval. Surfaced **proactively** as *"It looks like you're running low on Bread"*, with one tap to add | [`shared/engine/recommender.js`](shared/engine/recommender.js) |
 | **Seasonal recommendations** | Month-based seasonality plus a promotions table, ranked so in-season *and* discounted items lead | [`shared/data/seasonal.js`](shared/data/seasonal.js) |
-| **Substitutes** | A curated substitution graph with reasons (dairy-free, cheaper, healthier, vegan…), offered automatically when an item is out of stock | [`shared/data/substitutes.js`](shared/data/substitutes.js) |
+| **Substitutes** | A curated substitution graph with reasons (dairy-free, cheaper, healthier, vegan…). Offered on **three** triggers: when you *mention* a product (say milk, get offered almond milk), when an item is **out of stock**, and when you **ask** ("what can I use instead of milk") | [`shared/data/substitutes.js`](shared/data/substitutes.js) |
+
+> **Predictions are visible on the first visit.** A repurchase predictor has
+> nothing to work from until you have shopped with it for a fortnight, so a new
+> list is seeded with five weeks of sample history. The suggestions panel says so
+> plainly and clears it in one tap; real purchases append to the same history and
+> take over naturally.
 
 Suggestions always say **why**: *"You usually rebuy this every 4 days"*,
 *"25% off this week"*, *"Goes well with Pasta"*. An unexplained recommendation is
@@ -95,17 +101,31 @@ noise — the reason is what makes it actionable.
 | Requirement | Example |
 |---|---|
 | **Item search** | *"find me organic apples"*, *"show me Colgate toothpaste"*, *"find 1 litre milk"* |
-| **Price range filtering** | *"find toothpaste under 200 rupees"*, *"milk between 50 and 100"*, *"find toothpaste under 5 dollars"* |
+| **Price range filtering** | *"find toothpaste under $5"*, *"milk between 2 and 5 dollars"*, *"shampoo under 500 rupees"* |
 
-The catalog is an Indian grocery store, priced in rupees — and priced
-*realistically*, not converted: milk is ₹66 a litre, not $3.49 × 83. Prices stay
-in rupees in every language, because changing the interface language changes the
-words, not the shop.
+**One product, many prices.** A shop does not sell "toothpaste" at a single
+price — it sells Crest 75 ml at $2.29 and Sensodyne 150 ml at $5.79. Each of the
+136 products carries a **variant table**, one row per brand-and-size combination
+(532 in all), and filtering happens *per variant*:
 
-A spoken price in another currency is converted into rupees before comparison, so
-"under 5 dollars" becomes "under ₹415" and is compared against real shelf prices
-instead of silently comparing different units. A bare number ("under 200") is
-read as rupees.
+```
+"find toothpaste under $5"   →  Toothpaste, from $2.29  (8 of 9 options)
+                                   Crest · 75 ml       $2.29
+                                   Colgate · 75 ml     $2.79
+                                   Crest · 100 ml      $2.99
+                                   …
+                                   Colgate · 150 ml    $4.99
+```
+
+The $5.79 tube is excluded rather than the whole product being answered yes-or-no.
+Each option is separately addable, and a list line remembers which one you chose,
+so two tubes of toothpaste at different prices stay two lines with the right
+total.
+
+Prices are US dollars in every language: switching the interface language changes
+the words, not the shop. A price spoken in another currency is converted to
+dollars before comparison, so *"shampoo under 500 rupees"* works and the UI shows
+the converted ceiling so you can see what it understood.
 
 ### 5. UI/UX
 
@@ -195,7 +215,7 @@ lists tappable examples in the current language.
 | Add | "add milk" · "I need apples and bread" · "add 2 bottles of water" |
 | Quantity | "add two litres of milk" · "change milk to 3" · "buy a dozen eggs" |
 | Remove | "remove milk from my list" · "I don't need bread" · "clear my list" |
-| Search | "find toothpaste under 200 rupees" · "find me organic apples" |
+| Search | "find toothpaste under $5" · "find me organic apples" · "find 1 litre milk" |
 | Suggest | "what should I buy" · "what's on sale" |
 | Substitute | "what can I use instead of milk" |
 | Review | "what's on my list" · "I got the eggs" |
@@ -232,17 +252,17 @@ See [docs/TESTING.md](docs/TESTING.md) for the manual voice-testing checklist.
 
 ## Deployment
 
-**Static hosting** (fastest — gives you a working URL with no account setup):
-enable GitHub Pages on this repository, source `main` / `/ (root)`. The root
-`index.html` redirects to `web/`, and the app runs entirely client-side with
-`localStorage` persistence.
+**Firebase Hosting** is the recommended route and the one the repo is
+configured for. `firebase.json` is committed, so after a one-time
+`firebase login` and `firebase use --add`:
 
-**With the server** (adds cross-device sync): deploy to Render, Railway or Fly.
-`render.yaml` is included; the start command is `npm start` and it needs no
-environment variables.
+```bash
+npm run deploy:firebase
+```
 
-Step-by-step instructions for both, including the trade-offs, are in
-[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+That prints your live URL. **Google Cloud Run** and **AWS** are also covered, as
+is GitHub Pages if you would rather click than type — with the trade-offs of
+each — in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ---
 
@@ -272,12 +292,18 @@ the worse error. `"panir"` adds Paneer *and* surfaces a one-tap correction chip.
 Either outcome costs the user one tap; silently doing nothing costs them a
 forgotten item.
 
-**Why write Indian prices instead of converting dollar ones?** Because
-`$3.49 × 83 = ₹290` for a litre of milk, and the real price is about ₹66. A
-converted catalog would look plausible in code and absurd on screen, and every
-price-range search would return the wrong thing. The rates that remain exist to
-interpret spoken input ("under five dollars" → ₹415), not to re-denominate the
-shop.
+**Why generate the variant table instead of hand-writing it?** 532 rows of
+brand-and-size pricing written by hand would be 532 chances to fat-finger a
+number, and no reviewer could tell a typo from a decision. Instead they are
+derived from a stated model — price scales sub-linearly with pack size, brands
+carry a tier multiplier — anchored so the median size at the first brand costs
+exactly the product's declared price. Every other price is a visible multiple of
+that anchor rather than an invented figure.
+
+**Why seed a sample purchase history?** Because the repurchase predictor is the
+most interesting thing in the app and it is invisible for the first fortnight of
+real use. Seeding it makes the feature demonstrable in the first five seconds;
+disclosing it in the panel and clearing it in one tap keeps that honest.
 
 **Why a JSON file instead of a database?** A shopping list is small, and the
 guidelines ask for minimal dependencies. Writes are atomic (temp file + rename) so

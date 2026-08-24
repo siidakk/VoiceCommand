@@ -45,6 +45,15 @@ function priceCell(entry, store) {
 
   const discounted = entry.discount > 0 && entry.salePrice < entry.price;
 
+  // A search result with several qualifying options leads with the cheapest
+  // and says so, rather than quoting one price for a product that has many.
+  if (entry.variantCount > 1) {
+    return el('div', { className: 'suggestion-price' }, [
+      el('span', { className: 'price-from', text: t(store.lang, 'panel.variantsFrom', { price: '' }).trim() }),
+      el('span', { className: discounted ? 'price-now' : '', text: store.money(entry.matchedFrom) })
+    ]);
+  }
+
   return el('div', { className: 'suggestion-price' }, [
     discounted ? el('span', { className: 'price-was', text: store.money(entry.price) }) : null,
     el('span', {
@@ -81,7 +90,7 @@ function productRow(entry, store, onAdd, options = {}) {
 
   const why = options.why ?? reasonText(entry, lang);
 
-  return el('div', { className: 'suggestion' }, [
+  const row = el('div', { className: 'suggestion' }, [
     el('div', { className: 'suggestion-main' }, [
       el('div', { className: 'suggestion-name' }, [
         `${category.icon} ${localizedName(entry.id, lang) || entry.name}`,
@@ -107,6 +116,42 @@ function productRow(entry, store, onAdd, options = {}) {
     ]),
     priceCell(entry, store),
     addButton(entry, store, onAdd)
+  ]);
+
+  return options.variants
+    ? el('div', { className: 'suggestion-block' }, [row, variantList(entry, store, options.onAddVariant)])
+    : row;
+}
+
+
+/**
+ * The brand-and-size options under a search result.
+ *
+ * This is where "multiple prices for one item" becomes visible: a search for
+ * toothpaste under $5 shows the tubes that actually qualify, each at its own
+ * price and each addable on its own, rather than one row implying the product
+ * has a single price.
+ */
+function variantList(entry, store, onAddVariant) {
+  if (!entry.variants || entry.variants.length <= 1) return null;
+
+  const lang = store.lang;
+
+  return el('div', { className: 'variants' }, [
+    el('div', {
+      className: 'variants-head',
+      text: t(lang, 'panel.optionCount', { count: entry.variantCount })
+    }),
+    ...entry.variants.slice(0, 6).map((variant) =>
+      el('button', {
+        className: 'variant',
+        attrs: { type: 'button', title: `Add ${variant.label || entry.name}` },
+        on: { click: () => onAddVariant(entry, variant) }
+      }, [
+        el('span', { className: 'variant-label', text: variant.label || entry.name }),
+        el('span', { className: 'variant-price', text: store.money(variant.price) })
+      ])
+    )
   ]);
 }
 
@@ -171,6 +216,23 @@ function filterSummary(data, store) {
 function renderSuggestions(store, handlers) {
   const lang = store.lang;
   const nodes = [];
+
+  // Say plainly that the predictions are running on seeded data. A suggestion
+  // whose evidence is invented has to admit it, or it is just a lie with a
+  // reason attached.
+  if (store.historyIsSample) {
+    nodes.push(
+      el('div', { className: 'sample-note' }, [
+        el('span', { text: t(lang, 'panel.demoHistory') }),
+        el('button', {
+          className: 'text-button',
+          text: t(lang, 'panel.resetHistory'),
+          attrs: { type: 'button' },
+          on: { click: handlers.onClearSample }
+        })
+      ])
+    );
+  }
 
   const substitutes = substitutesBlock(store, handlers.onAdd, handlers.onDismissSubstitutes);
   if (substitutes) nodes.push(substitutes);
@@ -237,7 +299,9 @@ function renderSearch(store, handlers) {
   nodes.push(
     ...data.results.map((entry) =>
       productRow(entry, store, handlers.onAdd, {
-        why: [categoryLabel(lang, entry.category), ...(entry.tags || []).slice(0, 2)].join(' · ')
+        why: [categoryLabel(lang, entry.category), ...(entry.tags || []).slice(0, 2)].join(' · '),
+        variants: true,
+        onAddVariant: handlers.onAddVariant
       })
     )
   );

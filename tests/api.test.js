@@ -99,7 +99,7 @@ describe('command endpoint', () => {
       body.list.items.map((item) => [item.productId, item.quantity]).sort(),
       [['apple', 3], ['milk', 2]]
     );
-    assert.ok(body.list.totals.estimatedFormatted.startsWith('₹'));
+    assert.ok(body.list.totals.estimatedFormatted.startsWith('$'));
   });
 
   test('keeps sessions isolated', async () => {
@@ -134,7 +134,7 @@ describe('command endpoint', () => {
 
     assert.equal(body.lang, 'hi');
     assert.equal(body.responses[0].speak, 'दूध 2 लीटर जोड़ दिया');
-    assert.ok(body.list.totals.estimatedFormatted.includes('₹'));
+    assert.ok(body.list.totals.estimatedFormatted.includes('$'));
   });
 
   test('rejects an empty command', async () => {
@@ -254,19 +254,20 @@ describe('list endpoints', () => {
 
 describe('discovery endpoints', () => {
   test('GET /api/search applies query parameters', async () => {
-    const { body } = await call('/api/search?q=toothpaste%20under%20200%20rupees');
+    const { body } = await call('/api/search?q=toothpaste%20under%205%20dollars');
 
     assert.equal(body.ok, true);
     assert.equal(body.total, 1);
     assert.equal(body.results[0].id, 'toothpaste');
-    assert.ok(body.results[0].priceFormatted.startsWith('₹'));
+    assert.ok(body.results[0].priceFormatted.startsWith('$'));
   });
 
   test('GET /api/search honours explicit filters', async () => {
-    // Explicit filter values are in the catalog's base currency, rupees.
-    const { body } = await call('/api/search?q=milk&max=100');
+    // Explicit filter values are in the catalog's base currency, dollars.
+    const { body } = await call('/api/search?q=milk&max=3');
     assert.ok(body.results.length > 0);
-    assert.ok(body.results.every((result) => result.salePrice <= 100));
+    // Every option offered must be under the ceiling, not merely the product.
+    assert.ok(body.results.every((r) => r.variants.every((v) => v.price <= 3)));
   });
 
   test('POST /api/search parses a spoken phrase', async () => {

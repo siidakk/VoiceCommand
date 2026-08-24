@@ -141,6 +141,10 @@ function renderConnection() {
 
   refs.connectionBadge.dataset.state = online ? 'synced' : 'local';
   refs.connectionBadge.textContent = t(lang, online ? 'ctl.online' : 'ctl.offline');
+  // Static hosting has no server to be "online" with, and the app is fully
+  // functional either way — so the badge says where the list lives rather than
+  // implying something is broken.
+  refs.connectionBadge.title = t(lang, online ? 'ctl.onlineHint' : 'ctl.offlineHint');
 }
 
 // --------------------------------------------------------------- handlers --
@@ -153,7 +157,10 @@ const listHandlers = {
 
 const panelHandlers = {
   onAdd: (entry) => store.addProduct({ productId: entry.id, name: entry.name }),
-  onDismissSubstitutes: () => store.dismissSubstitutes()
+  onAddVariant: (entry, variant) =>
+    store.addProduct({ productId: entry.id, name: entry.name, variantId: variant.id }),
+  onDismissSubstitutes: () => store.dismissSubstitutes(),
+  onClearSample: () => store.clearSampleHistory()
 };
 
 const alertHandlers = {

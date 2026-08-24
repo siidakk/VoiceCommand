@@ -70,15 +70,20 @@ export function isAvailable(id) {
   return !OUT_OF_STOCK.has(id);
 }
 
-/** Price after any active promotion, rounded to whole rupees. */
+/** Price after any active promotion, rounded to cents. */
 export function salePrice(id) {
   const product = getProduct(id);
   if (!product) return 0;
   const off = discountFor(id);
   if (!off) return product.price;
-  // Shelf prices are whole rupees; carrying paise through the maths would only
-  // show up as a rounding discrepancy against the displayed total.
-  return Math.round(product.price * (1 - off / 100));
+  return Math.round(product.price * (1 - off / 100) * 100) / 100;
+}
+
+/** Apply the product's promotion to any price, e.g. a specific variant's. */
+export function discountedPrice(id, price) {
+  const off = discountFor(id);
+  if (!off) return price;
+  return Math.round(price * (1 - off / 100) * 100) / 100;
 }
 
 /**

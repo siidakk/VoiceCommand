@@ -5,19 +5,20 @@
  * ranked products. Handles the assignment's "find toothpaste under $5" and
  * "find me organic apples" alongside brand and pack-size refinements.
  *
- * Spoken prices are converted into the catalog's rupee base before comparison,
- * so "under 500 rupees" and "under 5 dollars" are both meaningful and neither
- * silently compares rupees against dollars.
+ * Spoken prices are converted into the catalog's dollar base before comparison,
+ * so "under $5" and "under 500 rupees" are both meaningful and neither silently
+ * compares one currency against another.
  */
 
-import { CATALOG } from '../data/catalog.js';
+import { CATALOG, variantLabel } from '../data/catalog.js';
 import { matchProducts } from '../nlp/matcher.js';
 import { normalize } from '../nlp/normalize.js';
-import { isOnSale, discountFor, salePrice, isAvailable } from '../data/seasonal.js';
+import { canonicalSize } from '../nlp/units.js';
+import { isOnSale, discountFor, salePrice, discountedPrice, isAvailable } from '../data/seasonal.js';
 import { toBaseCurrency, currencyFor } from '../i18n/index.js';
 import { alternatives } from './recommender.js';
 
-/** A product's effective price — what the shopper would actually pay. */
+/** A product's headline effective price — what the cheapest option costs. */
 function effectivePrice(product) {
   return salePrice(product.id);
 }
@@ -29,19 +30,57 @@ function hasTags(product, tags) {
   return tags.every((tag) => owned.includes(normalize(tag)));
 }
 
-/** Does the product list a matching brand? */
-function hasBrand(product, brand) {
-  const wanted = normalize(brand);
-  return product.brands.some((b) => {
-    const candidate = normalize(b);
-    return candidate === wanted || candidate.includes(wanted) || wanted.includes(candidate);
-  });
+/** Loose brand comparison, so "colgate" matches "Colgate". */
+function brandMatches(candidate, wanted) {
+  if (!candidate) return false;
+  const a = normalize(candidate);
+  const b = normalize(wanted);
+  return a === b || a.includes(b) || b.includes(a);
 }
 
-/** Does the product come in something close to the requested size? */
-function hasSize(product, size) {
-  const wanted = normalize(size).replace(/\s+/g, '');
-  return product.sizes.some((s) => normalize(s).replace(/\s+/g, '') === wanted);
+/** Does the product list a matching brand? */
+function hasBrand(product, brand) {
+  return product.brands.some((b) => brandMatches(b, brand));
+}
+
+/**
+ * The variants of a product that satisfy the brand, size and price filters.
+ *
+ * Filtering happens per variant, not per product, because that is where the
+ * prices actually differ. "Toothpaste under $5" should return the 75 ml and
+ * 100 ml tubes and leave the 150 ml one out — answering at the product level
+ * could only say yes or no to toothpaste as a whole.
+ *
+ * @returns {{ variants: object[], cheapest: number|null }}
+ */
+function qualifyingVariants(product, { brand, size, minBase, maxBase }) {
+  const matched = [];
+
+  for (const variant of product.variants) {
+    if (brand && !brandMatches(variant.brand, brand)) continue;
+
+    // "1 litre" and "1 L" are the same shelf item, so both sides are reduced
+    // to a canonical key before comparison.
+    if (size && canonicalSize(variant.size) !== canonicalSize(size)) continue;
+
+    // A promotion applies to the whole product, so it discounts every variant.
+    const price = discountedPrice(product.id, variant.price);
+    if (minBase !== null && price < minBase) continue;
+    if (maxBase !== null && price > maxBase) continue;
+
+    matched.push({
+      id: variant.id,
+      brand: variant.brand,
+      size: variant.size,
+      label: variantLabel(variant),
+      listPrice: variant.price,
+      price,
+      isDefault: variant.isDefault
+    });
+  }
+
+  matched.sort((a, b) => a.price - b.price);
+  return { variants: matched, cheapest: matched.length ? matched[0].price : null };
 }
 
 /**
@@ -115,13 +154,13 @@ export function search(filters, options = {}) {
     const matched = [];
 
     for (const { product, relevance } of candidates) {
-      if (brand && !hasBrand(product, brand)) continue;
       if (activeTags.length && !hasTags(product, activeTags)) continue;
-      if (size && !hasSize(product, size)) continue;
 
-      const price = effectivePrice(product);
-      if (minBase !== null && price < minBase) continue;
-      if (maxBase !== null && price > maxBase) continue;
+      // Brand, size and price are all properties of a *variant*, so they are
+      // resolved together — a product survives only if at least one of the
+      // things you could actually put in the basket satisfies them.
+      const { variants, cheapest } = qualifyingVariants(product, { brand, size, minBase, maxBase });
+      if (!variants.length) continue;
 
       const available = isAvailable(product.id);
       if (!available && !includeUnavailable) continue;
@@ -139,7 +178,13 @@ export function search(filters, options = {}) {
         category: product.category,
         unit: product.unit,
         price: product.price,
-        salePrice: price,
+        salePrice: effectivePrice(product),
+        // The cheapest option that actually satisfies the query, which is what
+        // "under $5" should show — not the product's headline price.
+        matchedFrom: cheapest,
+        variants,
+        variantCount: variants.length,
+        totalVariants: product.variants.length,
         discount: discountFor(product.id),
         onSale: isOnSale(product.id),
         available,
@@ -148,7 +193,8 @@ export function search(filters, options = {}) {
         tags: product.tags,
         relevance: Number(relevance.toFixed(3)),
         score,
-        // Only compute substitutes where they are actually needed.
+        // Alternatives are offered whenever the product cannot be bought, which
+        // is the assignment's "offer alternatives if a product is unavailable".
         substitutes: available ? [] : alternatives(product.id, { limit: 2 })
       });
     }
@@ -170,7 +216,7 @@ export function search(filters, options = {}) {
     }
   }
 
-  results.sort((a, b) => b.score - a.score || a.salePrice - b.salePrice);
+  results.sort((a, b) => b.score - a.score || a.matchedFrom - b.matchedFrom);
 
   return {
     results: results.slice(0, limit).map(({ score, ...rest }) => rest),
@@ -179,8 +225,8 @@ export function search(filters, options = {}) {
     relaxedFilters: relaxed,
     requestedTags: tags,
     priceRange: {
-      min: minBase === null ? null : Math.round(minBase),
-      max: maxBase === null ? null : Math.round(maxBase)
+      min: minBase === null ? null : Math.round(minBase * 100) / 100,
+      max: maxBase === null ? null : Math.round(maxBase * 100) / 100
     }
   };
 }

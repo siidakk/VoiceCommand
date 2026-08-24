@@ -68,12 +68,13 @@ pieces.
 | `find toothpaste` / `search for toothpaste` | Searches |
 | `find me organic apples` | Filters by the `organic` tag |
 | `show me Colgate toothpaste` | Filters by brand |
-| `find toothpaste under 200 rupees` | Price ceiling |
-| `find toothpaste under 200` | Bare number is read as rupees |
-| `find milk between 50 and 100` | Price range |
-| `find cheese more than 200 rupees` | Price floor |
-| `find chocolate around 100 rupees` | ±20% band |
-| `find toothpaste under 5 dollars` | Converted to ₹415, then compared |
+| `find toothpaste under 5 dollars` | Price ceiling — lists only the tubes under $5 |
+| `find toothpaste under 4` | Bare number is read as dollars |
+| `find milk between 2 and 5 dollars` | Price range |
+| `find cheese more than 4 dollars` | Price floor |
+| `find chocolate around 3 dollars` | ±20% band |
+| `find shampoo under 500 rupees` | Converted to dollars, then compared |
+| `find 1 litre milk` | Filters to that pack size across brands |
 | `find 1 litre milk` | Filters by pack size |
 | `find dairy` / `show me frozen` | Browses a category |
 | `how much is milk` / `price of milk` | Searches and shows price |
@@ -82,9 +83,13 @@ Comparators: under · below · less than · cheaper than · up to · at most ·
 within · over · above · more than · at least · between X and Y · from X to Y ·
 around · about.
 
-Currencies: rupees/rs · dollars/bucks · euros · pounds. Prices are stored and
-shown in rupees; a foreign amount is converted into rupees before comparison, and
-a bare number is already rupees.
+Currencies: dollars/bucks · rupees/rs · euros · pounds. Prices are stored and
+shown in dollars; a foreign amount is converted into dollars before comparison,
+and a bare number is already dollars.
+
+A price search answers with **variants**, not just products: "find toothpaste
+under $5" lists each qualifying brand-and-size at its own price, and each one can
+be added separately.
 
 Attribute tags: organic · gluten free · sugar free · no added sugar · vegan ·
 dairy free · lactose free · fresh · frozen · whole wheat · high protein ·

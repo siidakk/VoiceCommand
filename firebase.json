@@ -1,0 +1,62 @@
+{
+  "//": [
+    "Firebase Hosting configuration.",
+    "",
+    "`public` is the repository root rather than a build directory, because the",
+    "app ships unbundled: the page in web/ imports its modules from shared/ at",
+    "runtime, so both directories have to be served as they are. `ignore` keeps",
+    "the server source, tests and docs out of the deployed bundle.",
+    "",
+    "The root index.html redirects to /web/, so the bare hosting URL lands on",
+    "the app.",
+    "",
+    "Deploy with:  npm run deploy:firebase"
+  ],
+
+  "hosting": {
+    "public": ".",
+
+    "ignore": [
+      "firebase.json",
+      ".firebaserc",
+      "**/.*",
+      "**/node_modules/**",
+      "server/**",
+      "tests/**",
+      "docs/**",
+      "package.json",
+      "package-lock.json",
+      "render.yaml",
+      "LICENSE",
+      "README.md"
+    ],
+
+    "headers": [
+      {
+        "//": "The app is unbundled and unversioned, so a stale cached module is far more costly than a revalidation request.",
+        "source": "**/*.@(js|html|webmanifest)",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache" }
+        ]
+      },
+      {
+        "source": "**/*.css",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache" }
+        ]
+      },
+      {
+        "source": "**",
+        "headers": [
+          { "key": "X-Content-Type-Options", "value": "nosniff" },
+          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+          {
+            "//": "The microphone is the one capability this app genuinely needs.",
+            "key": "Permissions-Policy",
+            "value": "microphone=(self), geolocation=(), camera=()"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -130,7 +130,7 @@ free-text item, because the user must be able to add anything.
 | `list-manager.js` | Pure state transitions. Every operation returns a new state; nothing mutates. This is what lets the client keep an undo stack by holding old references. |
 | `categorizer.js` | Catalog lookup → strong qualifiers (`dog`, `baby`) → keyword table → nearest-neighbour vote. Returns `other` rather than guessing when confidence is low. |
 | `recommender.js` | Five ranked signals: learned repurchase due, frequently bought, pairings, seasonal/sale, cold-start staples. |
-| `search.js` | Applies structured filters, converting a spoken currency into the rupee base first. Relaxes an unsatisfiable tag filter rather than returning nothing. |
+| `search.js` | Resolves brand, size and price filters against **variants**, not products, and converts a spoken currency into the dollar base first. Relaxes an unsatisfiable tag filter rather than returning nothing. |
 | `executor.js` | The single dispatch point from parsed intent to state change plus spoken reply. Pure — persistence is the caller's job. |
 
 ### State shape
@@ -150,16 +150,31 @@ free-text item, because the user must be able to add anything.
 `history` is deliberately preserved by "clear my list" — the list is what the user
 asked to clear; the memory is what makes suggestions good.
 
-### Currency
+### Variants and pricing
 
-Catalog prices are Indian rupees, and are plausible Indian shelf prices rather
-than converted dollar figures — milk is ₹66 a litre, not $3.49 × 83. A mechanical
-conversion would have produced a catalog no Indian shopper would recognise.
+Prices are US dollars, and every locale shows dollars — switching the interface
+language changes the words, not the shop. The multi-currency machinery exists for
+*input*, not output: "under 500 rupees" is converted to $6.02 so it can be
+compared with the catalog, and the UI shows the converted ceiling.
 
-Every locale displays rupees, because all four describe the same shop. The
-multi-currency machinery exists for *input*, not output: "under five dollars" is
-converted to ₹415 so it can be compared with real prices, and the UI shows the
-converted figure so the user can see what was understood.
+A product does not have *a* price. Each carries a **variant table** — one row per
+brand-and-size combination, 532 across the catalog — generated from a stated
+model rather than hand-written:
+
+```
+size    price scales sub-linearly with pack size (bulk is cheaper per unit)
+brand   a tier multiplier by position in the product's brand list
+anchor  the median size at the first brand costs exactly product.price
+```
+
+The anchor is what keeps the model honest: the declared price stays meaningful,
+and every other variant is a visible multiple of it.
+
+Filtering resolves against variants, because that is where prices differ. A list
+item stores `variantId` and freezes `unitPrice`, so two tubes of toothpaste at
+different prices remain two lines whose sum matches the displayed total — pricing
+both from the product's headline price was a real bug, and
+`lineUnitPrice()` is the single place that decides what a line costs.
 
 `hydrate()` validates every field of anything read from storage, because
 `localStorage` and a JSON file are both untrusted input: they may come from an

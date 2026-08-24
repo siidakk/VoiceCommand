@@ -105,6 +105,22 @@ export function renderActionChips(refs, store, handlers) {
       }
     }
 
+    // The user mentioned a product that has alternatives. Offer them without
+    // being asked — "say milk, get offered almond milk" is the brief's own
+    // example of what substitutes are for.
+    for (const preference of data.preferences || []) {
+      for (const option of preference.options.slice(0, 2)) {
+        chips.push(
+          el('button', {
+            className: 'chip action swap',
+            text: t(lang, 'heard.preferInstead', { item: option.name }),
+            attrs: { type: 'button', title: t(lang, `reason.${option.reason}`) },
+            on: { click: () => handlers.onSwap(preference.itemId, option) }
+          })
+        );
+      }
+    }
+
     // Out of stock: offer the substitute directly from the chip row.
     for (const entry of data.unavailable || []) {
       for (const substitute of entry.substitutes.slice(0, 2)) {

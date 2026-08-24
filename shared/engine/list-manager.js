@@ -15,11 +15,15 @@
  *   }
  *
  * Item
- *   { id, productId|null, name, category, quantity, unit, bought,
- *     addedAt, updatedAt, note }
+ *   { id, productId|null, variantId|null, brand|null, size|null, unitPrice|null,
+ *     name, category, quantity, unit, bought, addedAt, updatedAt, note }
+ *
+ * `variantId` records which brand-and-size the shopper actually chose, and
+ * `unitPrice` freezes what it cost. Without those, a list holding "Colgate
+ * 150 ml" would be silently priced as though it were the cheapest tube.
  */
 
-import { getProduct } from '../data/catalog.js';
+import { getProduct, getVariant, variantLabel } from '../data/catalog.js';
 import { aisleOf } from '../data/categories.js';
 import { categorize } from './categorizer.js';
 import { matchProducts, contentTokens } from '../nlp/matcher.js';
@@ -122,10 +126,18 @@ export function addItem(state, spec, now = new Date()) {
   const unit = spec.unit || (product ? product.unit : 'pcs');
   const category = spec.category || categorize(name, productId);
 
+  // A specific brand-and-size, when the shopper picked one from search.
+  const variant = spec.variantId ? getVariant(spec.variantId) : null;
+  const variantId = variant ? variant.id : null;
+  const unitPrice = variant ? variant.price : product ? product.price : null;
+
   const existing = state.items.find(
     (item) =>
       !item.bought &&
       item.unit === unit &&
+      // Two different variants of one product are two different things to buy,
+      // so they stay as separate lines rather than merging into a wrong price.
+      (item.variantId || null) === variantId &&
       (productId ? item.productId === productId : contentTokens(item.name).join(' ') === contentTokens(name).join(' '))
   );
 
@@ -142,6 +154,10 @@ export function addItem(state, spec, now = new Date()) {
   const item = {
     id: newId(),
     productId,
+    variantId,
+    brand: variant ? variant.brand : null,
+    size: variant ? variant.size : null,
+    unitPrice,
     name,
     category,
     quantity,
@@ -265,6 +281,25 @@ export function groupByCategory(state) {
 }
 
 /**
+ * What one unit of a list item costs, or null when nothing knows.
+ *
+ * Prefers the frozen variant price, then the live catalog price. A free-text
+ * item has neither and contributes nothing to the estimate rather than a zero
+ * that would understate the total.
+ */
+export function lineUnitPrice(item) {
+  if (Number.isFinite(item.unitPrice)) return item.unitPrice;
+  const product = item.productId ? getProduct(item.productId) : null;
+  return product ? product.price : null;
+}
+
+/** "Colgate · 150 ml", or an empty string when no variant was chosen. */
+export function itemVariantLabel(item) {
+  if (!item.variantId) return '';
+  return variantLabel({ brand: item.brand, size: item.size });
+}
+
+/**
  * Count and estimated cost.
  * Free-text items have no catalog price and simply contribute nothing to the
  * estimate rather than blocking it.
@@ -282,9 +317,10 @@ export function totals(state) {
   for (const item of state.items) {
     if (item.bought) bought += 1;
 
-    const product = item.productId ? getProduct(item.productId) : null;
-    if (product) {
-      estimated += product.price * item.quantity;
+    // The chosen variant's price wins over the product's headline price.
+    const unitPrice = lineUnitPrice(item);
+    if (unitPrice !== null) {
+      estimated += unitPrice * item.quantity;
       priced += 1;
     } else {
       unpriced += 1;
@@ -295,8 +331,7 @@ export function totals(state) {
     total: state.items.length,
     bought,
     remaining: state.items.length - bought,
-    // Rupees are shown whole, so there is nothing to gain from tracking paise.
-    estimated: Math.round(estimated),
+    estimated: Math.round(estimated * 100) / 100,
     priced,
     unpriced
   };
@@ -319,6 +354,10 @@ export function hydrate(raw) {
         .map((item) => ({
           id: typeof item.id === 'string' && item.id ? item.id : newId(),
           productId: typeof item.productId === 'string' ? item.productId : null,
+          variantId: typeof item.variantId === 'string' && getVariant(item.variantId) ? item.variantId : null,
+          brand: typeof item.brand === 'string' ? item.brand : null,
+          size: typeof item.size === 'string' ? item.size : null,
+          unitPrice: Number.isFinite(item.unitPrice) && item.unitPrice >= 0 ? item.unitPrice : null,
           name: item.name.trim(),
           category: typeof item.category === 'string' ? item.category : categorize(item.name, item.productId),
           quantity: Number.isFinite(item.quantity) && item.quantity > 0 ? item.quantity : 1,

@@ -14,7 +14,7 @@ export default {
   speech: 'en-US',
   name: 'English',
   nativeName: 'English',
-  currency: 'INR',
+  currency: 'USD',
 
   strings: {
     // ------------------------------------------------------------ categories
@@ -99,6 +99,11 @@ export default {
     'panel.search': 'Search results',
     'panel.history': 'Bought before',
     'panel.noSuggestions': 'No suggestions yet — add a few items first.',
+    'panel.demoHistory': 'Using a sample purchase history so predictions show straight away.',
+    'panel.resetHistory': 'Clear sample',
+    'panel.variantsFrom': 'from {price}',
+    'panel.optionCount': '{count} options',
+    'heard.preferInstead': 'Prefer {item}?',
     'panel.addAll': 'Add all',
 
     // ---------------------------------------------------------------- search
@@ -158,8 +163,10 @@ export default {
     'ctl.typeInstead': 'Type a command',
     'ctl.send': 'Send',
     'ctl.help': 'Commands',
-    'ctl.offline': 'Offline',
+    'ctl.offline': 'On this device',
     'ctl.online': 'Synced',
+    'ctl.offlineHint': 'Your list is saved in this browser. No server needed.',
+    'ctl.onlineHint': 'Your list is synced across your devices.',
     'ctl.settings': 'Settings',
     'ctl.close': 'Close',
 

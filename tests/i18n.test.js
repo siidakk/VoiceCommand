@@ -126,40 +126,32 @@ describe('language resolution', () => {
 });
 
 describe('currency', () => {
-  test('the catalog base is rupees', () => {
-    assert.equal(BASE_CURRENCY, 'INR');
+  test('the catalog base is dollars', () => {
+    assert.equal(BASE_CURRENCY, 'USD');
   });
 
-  test('every language shows rupees, because they all describe one shop', () => {
+  test('every language shows dollars, because they all describe one shop', () => {
     for (const code of Object.keys(LOCALES)) {
-      assert.equal(currencyFor(code), 'INR', code + ' should display rupees');
+      assert.equal(currencyFor(code), 'USD', `${code} should display dollars`);
     }
   });
 
-  test('formats rupees in every language', () => {
+  test('formats dollars in every language', () => {
     for (const code of Object.keys(LOCALES)) {
-      assert.match(formatCurrency(66, code), /₹/);
+      assert.match(formatCurrency(3.49, code), /\$3\.49/);
     }
   });
 
-  test('rupees are shown whole, since paise are noise on a grocery list', () => {
-    assert.doesNotMatch(formatCurrency(66.4, 'hi'), /\./);
-    assert.match(formatCurrency(66, 'en'), /66/);
+  test('can render a dollar amount in another currency on request', () => {
+    assert.match(formatCurrency(10, 'en', 'INR'), /₹830/);
+    // Rupees drop the paise, because the coins are noise on a grocery list.
+    assert.doesNotMatch(formatCurrency(10, 'en', 'INR'), /\./);
   });
 
-  test('groups large amounts the Indian way', () => {
-    // 1,00,000 rather than 100,000.
-    assert.match(formatCurrency(100000, 'en'), /1,00,000/);
-  });
-
-  test('can render a rupee amount in another currency on request', () => {
-    assert.match(formatCurrency(830, 'en', 'USD'), /\$10\.00/);
-  });
-
-  test('toBaseCurrency turns a spoken amount into rupees', () => {
-    assert.ok(Math.abs(toBaseCurrency(5, 'en', 'USD') - 415) < 0.001);
-    // A bare number is already rupees.
-    assert.equal(toBaseCurrency(500, 'en'), 500);
+  test('toBaseCurrency turns a spoken amount into dollars', () => {
+    assert.ok(Math.abs(toBaseCurrency(415, 'en', 'INR') - 5) < 0.01);
+    // A bare number is already dollars.
+    assert.equal(toBaseCurrency(5, 'en'), 5);
   });
 
   test('an unknown currency does not throw', () => {

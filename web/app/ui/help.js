@@ -19,7 +19,7 @@ const EXAMPLES = {
     'help.add': ['Add milk', 'I need apples and bread', 'Add 2 bottles of water', 'Buy a dozen eggs'],
     'help.quantity': ['Change milk to 3', 'Add two litres of milk', 'Add 500 grams of cheese'],
     'help.remove': ['Remove milk from my list', "I don't need bread", 'Clear my list'],
-    'help.search': ['Find toothpaste under 200 rupees', 'Find me organic apples', 'Show me Colgate toothpaste'],
+    'help.search': ['Find toothpaste under 5 dollars', 'Find me organic apples', 'Find 1 litre milk'],
     'help.manage': [
       "What's on my list",
       'What should I buy',
@@ -31,21 +31,21 @@ const EXAMPLES = {
     'help.add': ['दूध जोड़ो', 'मुझे ब्रेड और अंडे चाहिए', 'दो लीटर दूध जोड़ो', 'आधा दर्जन अंडे'],
     'help.quantity': ['तीन किलो चावल जोड़ो', '500 ग्राम पनीर जोड़ो'],
     'help.remove': ['दूध हटाओ', 'ब्रेड नहीं चाहिए', 'सूची साफ़ करो'],
-    'help.search': ['टूथपेस्ट 200 रुपये से कम', 'शैम्पू 300 रुपये से कम'],
+    'help.search': ['टूथपेस्ट 5 डॉलर से कम', 'शैम्पू ढूंढो'],
     'help.manage': ['लिस्ट में क्या है', 'क्या खरीदूं', 'दूध की जगह क्या']
   },
   es: {
     'help.add': ['Añade leche', 'Necesito pan y huevos', 'Añade dos litros de leche', 'Media docena de huevos'],
     'help.quantity': ['Cambia leche a 3', 'Añade 500 gramos de queso'],
     'help.remove': ['Quita la leche', 'Ya no necesito pan', 'Borra la lista'],
-    'help.search': ['Busca pasta de dientes menos de 200 rupias', 'Busca manzanas'],
+    'help.search': ['Busca pasta de dientes menos de 5 dolares', 'Busca manzanas'],
     'help.manage': ['Qué hay en mi lista', 'Qué debería comprar', 'Alternativa a leche']
   },
   fr: {
     'help.add': ['Ajoute du lait', "J'ai besoin de pain", 'Ajoute deux litres de lait', 'Une douzaine d\'œufs'],
     'help.quantity': ['Change lait en 3', 'Ajoute 500 grammes de fromage'],
     'help.remove': ['Retire le lait', "Je n'ai plus besoin de pain", 'Vide la liste'],
-    'help.search': ['Trouve dentifrice moins de 200 roupies', 'Trouve des pommes'],
+    'help.search': ['Trouve dentifrice moins de 5 dollars', 'Trouve des pommes'],
     'help.manage': ['Ma liste', 'Que dois-je acheter', 'Alternative à lait']
   }
 };

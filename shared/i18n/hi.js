@@ -7,7 +7,7 @@ export default {
   speech: 'hi-IN',
   name: 'Hindi',
   nativeName: 'हिन्दी',
-  currency: 'INR',
+  currency: 'USD',
 
   strings: {
     'category.produce': 'फल और सब्ज़ियाँ',
@@ -84,6 +84,11 @@ export default {
     'panel.search': 'खोज परिणाम',
     'panel.history': 'पहले खरीदा हुआ',
     'panel.noSuggestions': 'अभी कोई सुझाव नहीं — पहले कुछ सामान जोड़ें।',
+    'panel.demoHistory': 'नमूना खरीद इतिहास का उपयोग हो रहा है, ताकि सुझाव तुरंत दिखें।',
+    'panel.resetHistory': 'नमूना हटाएँ',
+    'panel.variantsFrom': '{price} से',
+    'panel.optionCount': '{count} विकल्प',
+    'heard.preferInstead': '{item} लेंगे?',
     'panel.addAll': 'सभी जोड़ें',
 
     'search.title': 'वॉइस खोज',
@@ -138,8 +143,10 @@ export default {
     'ctl.typeInstead': 'कमांड टाइप करें',
     'ctl.send': 'भेजें',
     'ctl.help': 'कमांड',
-    'ctl.offline': 'ऑफ़लाइन',
+    'ctl.offline': 'इसी डिवाइस पर',
     'ctl.online': 'सिंक हो गया',
+    'ctl.offlineHint': 'आपकी सूची इसी ब्राउज़र में सुरक्षित है। सर्वर की ज़रूरत नहीं।',
+    'ctl.onlineHint': 'आपकी सूची सभी डिवाइस पर सिंक है।',
     'ctl.settings': 'सेटिंग्स',
     'ctl.close': 'बंद करें',
 

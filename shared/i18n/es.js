@@ -7,7 +7,7 @@ export default {
   speech: 'es-ES',
   name: 'Spanish',
   nativeName: 'Español',
-  currency: 'INR',
+  currency: 'USD',
 
   strings: {
     'category.produce': 'Frutas y verduras',
@@ -84,6 +84,11 @@ export default {
     'panel.search': 'Resultados',
     'panel.history': 'Comprado antes',
     'panel.noSuggestions': 'Aún no hay sugerencias: añade algunos artículos.',
+    'panel.demoHistory': 'Usando un historial de compras de ejemplo para que las predicciones se vean ya.',
+    'panel.resetHistory': 'Borrar ejemplo',
+    'panel.variantsFrom': 'desde {price}',
+    'panel.optionCount': '{count} opciones',
+    'heard.preferInstead': '¿Prefieres {item}?',
     'panel.addAll': 'Añadir todo',
 
     'search.title': 'Búsqueda por voz',
@@ -138,8 +143,10 @@ export default {
     'ctl.typeInstead': 'Escribe un comando',
     'ctl.send': 'Enviar',
     'ctl.help': 'Comandos',
-    'ctl.offline': 'Sin conexión',
+    'ctl.offline': 'En este dispositivo',
     'ctl.online': 'Sincronizado',
+    'ctl.offlineHint': 'Tu lista se guarda en este navegador. No hace falta servidor.',
+    'ctl.onlineHint': 'Tu lista se sincroniza entre tus dispositivos.',
     'ctl.settings': 'Ajustes',
     'ctl.close': 'Cerrar',
 

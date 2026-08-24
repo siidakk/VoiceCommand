@@ -7,7 +7,7 @@ export default {
   speech: 'fr-FR',
   name: 'French',
   nativeName: 'Français',
-  currency: 'INR',
+  currency: 'USD',
 
   strings: {
     'category.produce': 'Fruits et légumes',
@@ -84,6 +84,11 @@ export default {
     'panel.search': 'Résultats',
     'panel.history': 'Déjà acheté',
     'panel.noSuggestions': 'Pas encore de suggestions — ajoutez quelques articles.',
+    'panel.demoHistory': 'Historique d\'achats d\'exemple, pour que les prédictions soient visibles tout de suite.',
+    'panel.resetHistory': 'Effacer l\'exemple',
+    'panel.variantsFrom': 'à partir de {price}',
+    'panel.optionCount': '{count} options',
+    'heard.preferInstead': 'Préférez-vous {item} ?',
     'panel.addAll': 'Tout ajouter',
 
     'search.title': 'Recherche vocale',
@@ -138,8 +143,10 @@ export default {
     'ctl.typeInstead': 'Tapez une commande',
     'ctl.send': 'Envoyer',
     'ctl.help': 'Commandes',
-    'ctl.offline': 'Hors ligne',
+    'ctl.offline': 'Sur cet appareil',
     'ctl.online': 'Synchronisé',
+    'ctl.offlineHint': 'Votre liste est enregistrée dans ce navigateur. Aucun serveur requis.',
+    'ctl.onlineHint': 'Votre liste est synchronisée entre vos appareils.',
     'ctl.settings': 'Réglages',
     'ctl.close': 'Fermer',
 

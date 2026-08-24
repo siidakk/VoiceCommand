@@ -84,6 +84,8 @@ Open <http://localhost:3000> in Chrome, Edge, or Safari.
 |---|---|---|
 | 12 | "add panir" | Paneer added **and** a "Did you mean…?" chip if another candidate is close |
 | 13 | "add strawberries" | Added, plus a `Frozen Berries →` chip (strawberries are out of stock) |
+| 13b | "add milk" | Added, plus `Prefer Almond Milk?` and `Prefer Oat Milk?` chips — offered because you *mentioned* milk, not because anything is wrong |
+| 13c | Tap `Prefer Almond Milk?` | Milk is replaced by Almond Milk |
 | 14 | "add quantum widget" | Added as a free-text item marked `custom`, filed under Other |
 | 15 | (mumble something) | "Sorry, I did not catch that" plus closest guesses — never a crash |
 | 16 | "add milk and remove bread" | Two separate actions |
@@ -93,8 +95,10 @@ Open <http://localhost:3000> in Chrome, Edge, or Safari.
 
 | # | Say | Expect |
 |---|---|---|
-| 18 | "find toothpaste under 200 rupees" | Search tab opens, 1 result, `under ₹200` filter chip |
-| 18b | "find toothpaste under 5 dollars" | Same result, but the chip reads `under ₹415` — the conversion is shown, not hidden |
+| 18 | "find toothpaste under 5 dollars" | Search tab opens, `under $5.00` chip, and **8 of 9 options listed** — the $5.79 tube is excluded |
+| 18b | Tap two different options | Two separate list lines, each at its own price, and the total is their sum |
+| 18c | "shampoo under 500 rupees" | Works; the chip shows the converted dollar ceiling |
+| 18d | "find 1 litre milk" | Only the 1 L variants, across brands |
 | 19 | "find me organic apples" | Filtered by the organic tag |
 | 20 | "find gluten free bread" | Returns bread **and says the attribute was relaxed** |
 | 21 | "find dairy" | Browses the whole dairy category |

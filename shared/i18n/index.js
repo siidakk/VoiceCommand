@@ -24,29 +24,29 @@ export const LANGUAGES = Object.values(LOCALES).map((l) => ({
 export const DEFAULT_LANG = 'en';
 
 /**
- * The catalog's base currency.
+ * The catalog's base and display currency.
  *
- * Every price in shared/data/catalog.js is an Indian rupee amount, because the
- * catalog models an Indian grocery store. That is why the display currency does
- * not follow the interface language: switching to Français changes the words,
- * not the shop, so the prices stay in rupees.
+ * Every price in shared/data/catalog.js is a US dollar amount, and every locale
+ * displays dollars. The display currency deliberately does not follow the
+ * interface language: switching to Français changes the words, not the shop, so
+ * a French-speaking shopper still sees the prices the store actually charges.
  */
-export const BASE_CURRENCY = 'INR';
+export const BASE_CURRENCY = 'USD';
 
 /**
- * Static conversion rates *from* the INR base.
+ * Static conversion rates *from* the USD base.
  *
  * Deliberately not a live FX call: the assignment asks for a shopping
  * assistant, not a currency tracker, and a hard-coded table keeps the project
  * dependency-free and deterministic in tests. Swap for a rates API if the
  * numbers ever need to be real.
  *
- * These exist so a spoken price in another currency ("under five dollars")
- * can be compared against a rupee catalog, not so the UI can re-denominate.
+ * These exist so a spoken price in another currency ("under 500 rupees") can be
+ * compared against a dollar catalog — not so the UI can re-denominate itself.
  */
-const RATES_FROM_BASE = { INR: 1, USD: 1 / 83, EUR: 1 / 90, GBP: 1 / 105 };
+const RATES_FROM_BASE = { USD: 1, INR: 83, EUR: 0.92, GBP: 0.79 };
 
-const CURRENCY_LOCALE = { INR: 'en-IN', USD: 'en-US', EUR: 'de-DE', GBP: 'en-GB' };
+const CURRENCY_LOCALE = { USD: 'en-US', INR: 'en-IN', EUR: 'de-DE', GBP: 'en-GB' };
 
 /** Currencies rendered without minor units, because the coins are noise. */
 const WHOLE_UNIT_CURRENCIES = new Set(['INR']);
@@ -85,9 +85,9 @@ export function translator(lang) {
  * Currency a language displays prices in.
  *
  * Every locale returns the base currency today, because all four describe the
- * same Indian shop. The indirection is kept rather than hard-coding INR at the
- * call sites so that adding a locale with its own storefront stays a one-line
- * change in that locale file.
+ * same shop. The indirection is kept rather than hard-coding USD at the call
+ * sites so that adding a locale with its own storefront stays a one-line change
+ * in that locale file.
  */
 export function currencyFor(lang) {
   return LOCALES[resolveLang(lang)].currency || BASE_CURRENCY;
@@ -96,7 +96,7 @@ export function currencyFor(lang) {
 /**
  * Render a catalog amount as money.
  *
- * @param {number} amount     price in the base currency (INR)
+ * @param {number} amount     price in the base currency (USD)
  * @param {string} lang       language code, used for digit grouping
  * @param {string} [currency] render in this currency instead of the locale's
  */
@@ -123,8 +123,8 @@ export function formatCurrency(amount, lang, currency) {
 /**
  * Convert a spoken amount into the catalog's base currency.
  *
- * This is what makes "find toothpaste under five dollars" comparable against a
- * rupee-denominated catalog instead of silently comparing different units.
+ * This is what makes "find shampoo under 500 rupees" comparable against a
+ * dollar-denominated catalog instead of silently comparing different units.
  *
  * @param {number} amount     the number the user said
  * @param {string} lang       language code, for the assumed currency

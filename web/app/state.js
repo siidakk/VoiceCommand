@@ -26,7 +26,7 @@ import { parseFilters } from '../../shared/nlp/filters.js';
 import { normalize } from '../../shared/nlp/normalize.js';
 import { digitizeNumbers } from '../../shared/nlp/numbers.js';
 import { resolveLang, speechTag, formatCurrency } from '../../shared/i18n/index.js';
-import { getProduct } from '../../shared/data/catalog.js';
+import { buildDemoHistory } from '../../shared/data/demo-history.js';
 
 const STORAGE_KEY = 'vcsa.list';
 const SETTINGS_KEY = 'vcsa.settings';
@@ -65,7 +65,26 @@ export class Store {
       continuous: settings.continuous ?? false
     };
 
-    this.list = listManager.hydrate(readStored(STORAGE_KEY, null));
+    const stored = readStored(STORAGE_KEY, null);
+    this.list = listManager.hydrate(stored);
+
+    /**
+     * Seed a sample purchase history on a genuinely first visit.
+     *
+     * The repurchase predictor has nothing to work with until the user has
+     * shopped for a fortnight, which would hide the most interesting feature in
+     * the app from anyone trying it. The seed is disclosed in the suggestions
+     * panel and clearable in one tap, and real purchases append to it.
+     */
+    this.historyIsSample = settings.historyIsSample ?? false;
+
+    if (!stored) {
+      this.list = { ...this.list, history: buildDemoHistory() };
+      this.historyIsSample = true;
+      this.settings.historyIsSample = true;
+      this.persist();
+      this.persistSettings();
+    }
 
     /** Previous list states, newest last. */
     this.undoStack = [];
@@ -137,12 +156,16 @@ export class Store {
    * Line total for a list row, or null for a free-text item the catalog has
    * no price for. Returning null rather than 0 lets the row omit the price
    * entirely instead of claiming the item is free.
+   *
+   * Goes through lineUnitPrice so a row holding a specific variant is priced
+   * at what that variant costs — using the product's headline price here would
+   * show two differently-priced tubes of toothpaste at the same number while
+   * the basket total quietly disagreed.
    */
   moneyForItem(item) {
-    if (!item.productId) return null;
-    const product = getProduct(item.productId);
-    if (!product) return null;
-    return this.money(product.price * item.quantity);
+    const unitPrice = listManager.lineUnitPrice(item);
+    if (unitPrice === null) return null;
+    return this.money(unitPrice * item.quantity);
   }
 
   persist() {
@@ -391,10 +414,16 @@ export class Store {
   // ---------------------------------------------------------- direct edits --
 
   /** Add an item without going through the parser (suggestion chips). */
-  async addProduct({ productId, name, quantity = 1, unit }) {
+  async addProduct({ productId, name, quantity = 1, unit, variantId = null }) {
     this.pushUndo();
 
-    const { state, item } = listManager.addItem(this.list, { productId, name, quantity, unit });
+    const { state, item } = listManager.addItem(this.list, {
+      productId,
+      name,
+      quantity,
+      unit,
+      variantId
+    });
     this.list = state;
     this.persist();
 
@@ -492,6 +521,25 @@ export class Store {
     this.panels.runningLow = undismissed && undismissed.length ? low : null;
 
     this.notify();
+  }
+
+  /** Drop the seeded history, leaving only what the user actually bought. */
+  clearSampleHistory() {
+    const seeded = new Set(buildDemoHistory().map((entry) => `${entry.productId}|${entry.at}`));
+
+    this.list = {
+      ...this.list,
+      // Only the fabricated entries go; anything the user marked bought stays.
+      history: this.list.history.filter((entry) => !seeded.has(`${entry.productId}|${entry.at}`))
+    };
+
+    this.historyIsSample = false;
+    this.settings.historyIsSample = false;
+    this.dismissedLow = new Set();
+
+    this.persist();
+    this.persistSettings();
+    this.refreshPanels();
   }
 
   /** Silence the running-low alert for the products it currently names. */

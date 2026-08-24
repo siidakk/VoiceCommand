@@ -124,6 +124,34 @@ for (const [unit, { kind, forms }] of Object.entries(UNIT_FORMS)) {
 }
 
 /**
+ * Canonical unit for a single token, or null.
+ *
+ * Exported so a spoken pack size can be compared with a catalog one: "1 litre"
+ * and "1 L" are the same shelf item, and only a canonical form makes them
+ * compare equal.
+ */
+export function unitFor(token) {
+  const hit = FORM_INDEX.get(String(token).toLowerCase());
+  return hit ? hit.unit : null;
+}
+
+/**
+ * A pack size reduced to a comparable key: "1 litre" and "1 L" both give "1l".
+ * Returns a whitespace-stripped fallback when the unit is unrecognised, so an
+ * exotic size still compares against an identical string.
+ */
+export function canonicalSize(size) {
+  const text = String(size || '').trim().toLowerCase();
+  if (!text) return '';
+
+  const match = /(\d+(?:\.\d+)?)\s*([\p{L}]+)?/u.exec(text);
+  if (!match) return text.replace(/\s+/g, '');
+
+  const unit = match[2] ? unitFor(match[2]) : null;
+  return `${Number(match[1])}${unit || (match[2] || '').replace(/\s+/g, '')}`;
+}
+
+/**
  * Find the unit in an utterance.
  *
  * Scans tokens rather than running a regex over the whole string so a product

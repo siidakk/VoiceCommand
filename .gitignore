@@ -24,3 +24,6 @@ Thumbs.db
 server/.data/
 *.log
 
+
+# Firebase project binding — created by `firebase use --add`, differs per developer
+.firebaserc

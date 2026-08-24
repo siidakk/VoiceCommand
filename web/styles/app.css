@@ -1348,3 +1348,111 @@ button {
   font-size: 13px;
   font-weight: 650;
 }
+
+/* --------------------------------------------------------- variant picker */
+
+/* One product, several prices: the options a search actually matched. */
+.suggestion-block {
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+}
+
+.suggestion-block:last-child {
+  border-bottom: none;
+}
+
+.suggestion-block .suggestion {
+  border-bottom: none;
+  padding-bottom: 4px;
+}
+
+.variants {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 0 10px 0;
+}
+
+.variants-head {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  padding-bottom: 4px;
+}
+
+.variant {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-2);
+  font-size: 12.5px;
+  text-align: left;
+  color: var(--text-dim);
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+}
+
+.variant:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.variant-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.variant-price {
+  flex-shrink: 0;
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.price-from {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* A swap suggestion is an offer, not a correction, so it reads differently
+   from the "did you mean?" chips beside it. */
+.chip.action.swap {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* ------------------------------------------------------- sample-data note */
+
+.sample-note {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+  border-radius: var(--radius-sm);
+  background: var(--warn-soft);
+  border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--warn);
+}
+
+.sample-note .text-button {
+  color: var(--warn);
+  font-size: 11.5px;
+  white-space: nowrap;
+}

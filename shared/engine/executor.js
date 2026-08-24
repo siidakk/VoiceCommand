@@ -118,6 +118,7 @@ function doAdd(state, command, lang, now) {
   const added = [];
   const unconfident = [];
   const unavailable = [];
+  const preferences = [];
 
   for (const item of command.items) {
     const result = list.addItem(
@@ -156,6 +157,20 @@ function doAdd(state, command, lang, now) {
         name: result.item.name,
         substitutes: alternatives(item.productId, { limit: 2 })
       });
+    } else if (item.productId) {
+      // The other half of the brief's substitutes requirement: alternatives are
+      // offered not only when something is unavailable, but whenever the user
+      // *mentions* a product they might prefer differently — say milk, and
+      // almond milk is offered without being asked for.
+      const options = alternatives(item.productId, { limit: 2 });
+      if (options.length) {
+        preferences.push({
+          itemId: result.item.id,
+          productId: item.productId,
+          name: result.item.name,
+          options
+        });
+      }
     }
   }
 
@@ -191,7 +206,7 @@ function doAdd(state, command, lang, now) {
 
   return {
     state: next,
-    response: reply(RESULT.ADDED, speak, { added, unconfident, unavailable })
+    response: reply(RESULT.ADDED, speak, { added, unconfident, unavailable, preferences })
   };
 }
 

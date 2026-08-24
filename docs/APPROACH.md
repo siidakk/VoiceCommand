@@ -67,18 +67,27 @@ purchases once there are at least two intervals to learn from, and only falls ba
 to the catalog's generic `cycleDays` before that. An item surfaces at 80% of its
 interval: early enough to be useful, late enough to be right.
 
-### Pricing in rupees
+### One product, many prices
 
-The catalog models an Indian grocery store, so prices are rupees — and they are
-*written* as rupees rather than converted from dollars. A mechanical conversion
-would have priced milk at Rs 290 a litre instead of Rs 66, producing a catalog no
-Indian shopper would recognise and making every "under X" search meaningless.
+"Find toothpaste under $5" is only a real question if toothpaste has more than
+one price. So each product carries a variant table — one row per brand-and-size
+combination, 532 across the catalog — and price, brand and size filters resolve
+against variants rather than products. A search returns the eight tubes that
+qualify and omits the ninth, instead of answering yes or no for toothpaste.
 
-The multi-currency machinery survives, but it serves input rather than output:
-"under five dollars" is converted to Rs 415 before comparison, and the interface
-shows the converted figure so the user can see what was understood. Every locale
-displays rupees, because switching the interface language changes the words, not
-the shop.
+The table is derived rather than hand-written: price scales sub-linearly with
+pack size, brands carry a tier multiplier by position, and the whole thing is
+anchored so the median size at the first brand costs exactly the declared price.
+Hand-writing 532 numbers would have been 532 chances to typo one, with no way for
+a reader to tell a mistake from a decision.
+
+### Making prediction visible
+
+The repurchase predictor works from real purchase history, which means it shows
+nothing at all until the user has shopped for a fortnight — hiding the most
+interesting behaviour in the app from anyone evaluating it. A first-time list is
+therefore seeded with five weeks of plausible history, chosen so some items are
+due and others clearly are not. The panel says so and clears it in one tap.
 
 ### Honest failure
 
