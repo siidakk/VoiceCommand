@@ -4,7 +4,7 @@
   "description": "Voice-driven shopping list manager with multilingual NLP and smart suggestions. Zero runtime dependencies.",
   "type": "module",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "scripts": {
     "start": "node server/index.js",

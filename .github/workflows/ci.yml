@@ -1,8 +1,8 @@
 # Runs the test suite on every push and pull request.
 #
 # There is no install step: the project has no dependencies, so `npm ci` would
-# have nothing to do. The matrix pins the oldest supported runtime (Node 18,
-# the first with a stable built-in test runner) alongside current LTS.
+# have nothing to do. The matrix covers the oldest runtime the project claims
+# to support alongside current LTS.
 name: tests
 
 on:
@@ -17,7 +17,7 @@ jobs:
 
     strategy:
       matrix:
-        node: ['18', '22']
+        node: ['20', '22']
 
     steps:
       - uses: actions/checkout@v4
