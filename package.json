@@ -1,0 +1,24 @@
+{
+  "name": "voice-command-shopping-assistant",
+  "version": "1.0.0",
+  "description": "Voice-driven shopping list manager with multilingual NLP and smart suggestions. Zero runtime dependencies.",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node --test"
+  },
+  "keywords": [
+    "voice",
+    "speech-recognition",
+    "shopping-list",
+    "nlp",
+    "web-speech-api"
+  ],
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}

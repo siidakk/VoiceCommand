@@ -1,0 +1,23 @@
+# Render deployment.
+#
+# There is no build command because the project has no dependencies: `npm start`
+# runs `node server/index.js` directly against source. A disk is attached so the
+# JSON store survives restarts; without one the server falls back to memory-only
+# and the browser's localStorage copy still keeps every list intact.
+services:
+  - type: web
+    name: voice-command-shopping-assistant
+    runtime: node
+    plan: free
+    buildCommand: ''
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: DATA_DIR
+        value: /var/data
+    disk:
+      name: list-store
+      mountPath: /var/data
+      sizeGB: 1

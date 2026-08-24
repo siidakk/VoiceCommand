@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta
+      name="description"
+      content="Voice-driven shopping list with multilingual natural-language commands, smart suggestions and voice search."
+    />
+    <title>Voice Shopping Assistant</title>
+
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%9B%92%3C/text%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./styles/app.css" />
+  </head>
+
+  <body>
+    <!-- Screen-reader announcements for every assistant action. Kept outside
+         the visual flow so the app is usable entirely by voice + audio. -->
+    <div id="live-region" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <div class="app" id="app">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">🛒</span>
+          <div class="brand-text">
+            <h1 data-i18n="app.title">Voice Shopping Assistant</h1>
+            <p class="tagline" data-i18n="app.tagline">Say what you need. It lands on the list.</p>
+          </div>
+        </div>
+
+        <div class="topbar-controls">
+          <span
+            class="badge"
+            id="connection-badge"
+            data-state="local"
+            title="Storage mode"
+          ></span>
+
+          <label class="control-label" for="lang-select">
+            <span class="visually-hidden" data-i18n="ctl.language">Language</span>
+            <select id="lang-select" class="select" aria-label="Language"></select>
+          </label>
+
+          <button
+            type="button"
+            class="icon-button"
+            id="tts-toggle"
+            aria-pressed="true"
+            title="Voice replies"
+          >
+            <span aria-hidden="true">🔊</span>
+          </button>
+
+          <button type="button" class="icon-button" id="help-button" title="Commands">
+            <span aria-hidden="true">?</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Real-time recognition feedback: interim text while speaking, then the
+           final transcript with confidence and the action that was taken. -->
+      <section class="transcript" id="transcript" data-state="idle" aria-live="off">
+        <div class="transcript-row">
+          <span class="transcript-label" id="transcript-label" data-i18n="mic.hint"></span>
+          <span class="transcript-confidence" id="transcript-confidence"></span>
+        </div>
+        <p class="transcript-text" id="transcript-text"></p>
+        <div class="transcript-chips" id="transcript-chips"></div>
+      </section>
+
+      <div id="error-slot"></div>
+
+      <main class="main">
+        <section class="panel list-panel" aria-labelledby="list-heading">
+          <div class="panel-head">
+            <h2 id="list-heading" data-i18n="list.title">Shopping list</h2>
+            <div class="panel-head-meta">
+              <span id="list-count" class="count"></span>
+              <button type="button" class="text-button" id="undo-button" hidden data-i18n="list.undo">
+                Undo
+              </button>
+              <button type="button" class="text-button danger" id="clear-button" data-i18n="list.clearAll">
+                Clear list
+              </button>
+            </div>
+          </div>
+
+          <div id="list-body" class="list-body" aria-busy="false"></div>
+
+          <div class="list-total" id="list-total" hidden>
+            <span data-i18n="list.total">Estimated total</span>
+            <strong id="list-total-value"></strong>
+          </div>
+        </section>
+
+        <section class="panel side-panel" aria-labelledby="panel-heading">
+          <div class="tabs" role="tablist" aria-label="Suggestions and search">
+            <button type="button" class="tab" role="tab" data-tab="suggestions" aria-selected="true" data-i18n="panel.suggestions">
+              Smart suggestions
+            </button>
+            <button type="button" class="tab" role="tab" data-tab="seasonal" aria-selected="false" data-i18n="panel.seasonal">
+              In season &amp; on sale
+            </button>
+            <button type="button" class="tab" role="tab" data-tab="search" aria-selected="false" data-i18n="panel.search">
+              Search results
+            </button>
+          </div>
+
+          <h2 id="panel-heading" class="visually-hidden">Suggestions and search results</h2>
+          <div id="panel-body" class="panel-body" aria-busy="false"></div>
+        </section>
+      </main>
+
+      <!-- Voice dock. On mobile this is the primary (and sufficient) control. -->
+      <footer class="dock">
+        <form class="text-form" id="text-form" autocomplete="off">
+          <input
+            type="text"
+            id="text-input"
+            class="text-input"
+            placeholder="Type a command"
+            aria-label="Type a command"
+            enterkeyhint="send"
+          />
+          <button type="submit" class="send-button" id="send-button" data-i18n="ctl.send">Send</button>
+        </form>
+
+        <div class="mic-cluster">
+          <button
+            type="button"
+            id="mic-button"
+            class="mic-button"
+            data-state="idle"
+            aria-label="Start or stop voice input"
+          >
+            <svg class="mic-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path
+                d="M12 15a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3Z"
+                fill="currentColor"
+              />
+              <path
+                d="M18 11a1 1 0 1 0-2 0 4 4 0 0 1-8 0 1 1 0 1 0-2 0 6 6 0 0 0 5 5.91V19H9a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2h-2v-2.09A6 6 0 0 0 18 11Z"
+                fill="currentColor"
+              />
+            </svg>
+            <span class="mic-pulse" aria-hidden="true"></span>
+          </button>
+
+          <div class="mic-meta">
+            <span class="mic-status" id="mic-status" data-i18n="mic.idle">Tap to speak</span>
+            <label class="switch">
+              <input type="checkbox" id="continuous-toggle" />
+              <span data-i18n="mic.continuous">Hands-free</span>
+            </label>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Help sheet: the full spoken-command reference, opened from the header. -->
+    <dialog id="help-dialog" class="sheet" aria-labelledby="help-title">
+      <div class="sheet-head">
+        <h2 id="help-title" data-i18n="help.title">What you can say</h2>
+        <button type="button" class="icon-button" id="help-close" data-i18n="ctl.close">Close</button>
+      </div>
+      <div class="sheet-body" id="help-body"></div>
+    </dialog>
+
+    <script type="module" src="./app/main.js"></script>
+
+    <noscript>
+      <p class="noscript">
+        This assistant needs JavaScript for speech recognition and list management.
+      </p>
+    </noscript>
+  </body>
+</html>
