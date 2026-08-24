@@ -18,7 +18,7 @@ lists no dependencies at all.
 
 | | |
 |---|---|
-| **Application URL** https://voicecommand-dc704.web.app_ |
+| **Application URL** | https://voicecommand-dc704.web.app_ |
 | **Repository** | https://github.com/siidakk/VoiceCommand |
 | **Project Console** | https://console.firebase.google.com/project/voicecommand-dc704/overview |
 
